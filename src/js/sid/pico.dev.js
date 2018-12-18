@@ -11,7 +11,7 @@
 
   if (typeof AudioContext !== "undefined") {
     ImplClass = function(sys) {
-      var context = new AudioContext();
+      var context = window.audioCtx = window.audioCtx || new AudioContext();
       var bufSrc, jsNode;
 
       this.maxSamplerate     = context.sampleRate;

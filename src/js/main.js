@@ -18,6 +18,18 @@ window.requestAnimFrame = (function () {
 		};
 })();
 
+main.toggle_audio = function (menuItemElement) {
+	if ('audioCtx' in window) {
+		if (window.audioCtx.state == 'suspended') {
+			window.audioCtx.resume();
+			menuItemElement.className = menuItemElement.className.replace(/fa-volume-off/, 'fa-volume-up');
+		} else {
+			window.audioCtx.suspend();
+			menuItemElement.className = menuItemElement.className.replace(/fa-volume-up/, 'fa-volume-off');
+		}
+	}
+}
+
 main.zoom = function (menuItemElement) {
 	var emulatorContainer = document.getElementById('emulatorSize');
 	var controlPanel = document.getElementById('controlPanel');
