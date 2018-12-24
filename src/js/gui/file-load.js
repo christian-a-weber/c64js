@@ -12,16 +12,19 @@ fileLoad.saveToMemory = function() {
 		memoryManager.ram.onWriteByte(baseAddress + index, dataArray[index]);
 	}
 
+	memoryManager.ram.onWriteByte(0xae, (baseAddress + dataArray.length) & 0xff);
+	memoryManager.ram.onWriteByte(0xaf, ((baseAddress + dataArray.length) >> 8) & 0xff);
+
 	var result = {filename:this.filename, base:baseAddress, length:dataArray.length}
 	this.data = [];
 	this.filename = "";
-	console.log('file "' + result.filename + '" is loaded into memory address $' + result.base.toString(16));
+	console.log('file "' + result.filename + '": ' + result.length.toString() + ' bytes loaded at $' + result.base.toString(16));
 	return result;
 }
 
 fileLoad.writeAutoRun = function() {
-	cpuMemoryManager.writeByte(198, 1);
-	cpuMemoryManager.writeByte(631, 131);
+	cpuMemoryManager.writeByte(198, 1);	// keyboard buffer len
+	cpuMemoryManager.writeByte(631, 131);	// shift-run/stop (load + run)
 }
 
 fileLoad.selectFile = function() {

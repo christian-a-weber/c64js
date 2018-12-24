@@ -1422,13 +1422,11 @@ mos6510.checkBreakPoints = function () {
 
 	// LOAD hook
 	if (this.register.pc == 0xF4A5 && fileLoad.data.byteLength > 0) {
-		var result = fileLoad.saveToMemory();
+		var result = fileLoad.saveToMemory();	// will set $AE/$AF to length
 
-		this.register.x = (result.length & 0x00ff);
-		this.register.y = (result.length & 0xff00) >> 8;
 		this.register.a = 0;
 		this.register.status.carry = 0;
-		this.register.pc = 0xF5AE; // Return gadget
+		this.register.pc = 0xF5AA;		// LDX $AE; LDY $AF; RTS
 	}
 }
 
