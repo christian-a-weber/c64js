@@ -32,7 +32,7 @@ mos6510.register = {
 
 mos6510.reset = function () {
 	this.instructions.rst();
-    sid.stop();
+	sid.stop();
 };
 
 mos6510.pushToStack = function (byte) {
@@ -49,7 +49,7 @@ mos6510.popFromStack = function () {
 
 mos6510.init = function (memoryModule) {
 	this.memory = memoryModule;
-	this.register.pc = mos6510.memory.readByte(0xfffc) | (mos6510.memory.readByte(0xfffd) << 8);
+	this.instructions.rst();
 };
 
 mos6510.getNextInstruction = function () {
@@ -183,7 +183,7 @@ mos6510.instructions = {
 	},
 	ane: function (value) {
 		// This is an illegal instruction and is not safe to use.
-		// The constant $ee can vary, and is depending on chip and/or temperature 
+		// The constant $ee can vary, and is depending on chip and/or temperature
 		mos6510.register.a = (mos6510.register.a | 0xee) & mos6510.register.x & value;
 		mos6510.register.status.zero = mos6510.register.a == 0;
 		mos6510.register.status.negative = (mos6510.register.a & 0x80) > 0;
@@ -425,7 +425,7 @@ mos6510.instructions = {
 };
 
 mos6510.instructionMap = {
-	0x00: function () {																			// BRK 
+	0x00: function () {																			// BRK
 		++mos6510.register.pc;
 		mos6510.pushToStack((mos6510.register.pc & 0xff00) >> 8);
 		mos6510.pushToStack(mos6510.register.pc & 0x00ff);
@@ -435,7 +435,7 @@ mos6510.instructionMap = {
 		mos6510.register.pc = mos6510.memory.readByte(0xfffe) | (mos6510.memory.readByte(0xffff) << 8);
 		return 7;
 	},
-	0x01: function () {																			// ORA ($85,X) 
+	0x01: function () {																			// ORA ($85,X)
 		mos6510.instructions.ora(mos6510.addressModeOperations.IndirectX(true).valueAddr);
 		return 6;
 	},
@@ -449,11 +449,11 @@ mos6510.instructionMap = {
 	0x04: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0x05: function () {																			// ORA $85 
+	0x05: function () {																			// ORA $85
 		mos6510.instructions.ora(mos6510.addressModeOperations.ZeroPage(true).valueAddr);
 		return 2;
 	},
-	0x06: function () {																			// ASL $85 
+	0x06: function () {																			// ASL $85
 		var addr = mos6510.addressModeOperations.ZeroPage(false).valueAddr;
 		var value = mos6510.instructions.asl(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
@@ -482,7 +482,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.anc(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0x0d: function () {																			// ORA $A5B6 
+	0x0d: function () {																			// ORA $A5B6
 		mos6510.instructions.ora(mos6510.addressModeOperations.Absolute(true).valueAddr);
 		return 4;
 	},
@@ -500,7 +500,7 @@ mos6510.instructionMap = {
 		return 7;
 	},
 
-	0x10: function () {																			// BPL $A5 
+	0x10: function () {																			// BPL $A5
 		var addrEnv = mos6510.addressModeOperations.Relative();
 		var isBranch = mos6510.instructions.bpl(addrEnv.valueAddr);
 		if (!isBranch)
@@ -522,11 +522,11 @@ mos6510.instructionMap = {
 	0x14: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0x15: function () {																			// ORA $A5,X 
+	0x15: function () {																			// ORA $A5,X
 		mos6510.instructions.ora(mos6510.addressModeOperations.ZeroPageX(true).valueAddr);
 		return 3;
 	},
-	0x16: function () {																			// ASL $44,X 
+	0x16: function () {																			// ASL $44,X
 		var addr = mos6510.addressModeOperations.ZeroPageX(false).valueAddr;
 		var value = mos6510.instructions.asl(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
@@ -543,7 +543,7 @@ mos6510.instructionMap = {
 		mos6510.register.status.carry = false;
 		return 2;
 	},
-	0x19: function () {																			// ORA $A5B6,Y 
+	0x19: function () {																			// ORA $A5B6,Y
 		var valueEnv = mos6510.addressModeOperations.AbsoluteY(true);
 		mos6510.instructions.ora(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
@@ -555,7 +555,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.ora(mos6510.memory.readByte(addr));
 		return 7;
 	},
-	0x1d: function () { 																		// ORA $A5B6,X 
+	0x1d: function () { 																		// ORA $A5B6,X
 		var valueEnv = mos6510.addressModeOperations.AbsoluteX(true);
 		mos6510.instructions.ora(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
@@ -574,7 +574,7 @@ mos6510.instructionMap = {
 		return 7;
 	},
 
-	0x20: function () {																			// JSR $A5B6 
+	0x20: function () {																			// JSR $A5B6
 		mos6510.instructions.jsr(mos6510.addressModeOperations.Absolute(false).valueAddr);
 		return 6;
 	},
@@ -587,11 +587,11 @@ mos6510.instructionMap = {
 		mos6510.instructions.bit(mos6510.addressModeOperations.ZeroPage(true).valueAddr);
 		return 4;
 	},
-	0x25: function () {																			// AND $A5 
+	0x25: function () {																			// AND $A5
 		mos6510.instructions.and(mos6510.addressModeOperations.ZeroPage(true).valueAddr);
 		return 2;
 	},
-	0x26: function () {																			// ROL $A5 
+	0x26: function () {																			// ROL $A5
 		var addr = mos6510.addressModeOperations.ZeroPage(false).valueAddr;
 		var value = mos6510.instructions.rol(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
@@ -613,7 +613,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.anc(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0x2c: function () {																			// BIT $A5B6 
+	0x2c: function () {																			// BIT $A5B6
 		mos6510.instructions.bit(mos6510.addressModeOperations.Absolute(true).valueAddr);
 		return 4;
 	},
@@ -628,14 +628,14 @@ mos6510.instructionMap = {
 		return 6;
 	},
 
-	0x30: function () {																			//  BMI $A5
+	0x30: function () {																			// BMI $A5
 		var addrEnv = mos6510.addressModeOperations.Relative();
 		var isBranch = mos6510.instructions.bmi(addrEnv.valueAddr);
 		if (!isBranch)
 			return 2;
 		return addrEnv.pageBoundaryCrossed ? 4 : 3;
 	},
-	0x31: function () {																			// AND ($A5),Y 
+	0x31: function () {																			// AND ($A5),Y
 		var valueEnv = mos6510.addressModeOperations.IndirectY(true);
 		mos6510.instructions.and(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 6 : 5;
@@ -643,17 +643,17 @@ mos6510.instructionMap = {
 	0x34: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0x35: function () {																			// AND $A5,X 
+	0x35: function () {																			// AND $A5,X
 		mos6510.instructions.and(mos6510.addressModeOperations.ZeroPageX(true).valueAddr);
 		return 3;
 	},
-	0x36: function () {																			// ROL $A5,X 
+	0x36: function () {																			// ROL $A5,X
 		var addr = mos6510.addressModeOperations.ZeroPageX(false).valueAddr;
 		var value = mos6510.instructions.rol(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
 		return 6;
 	},
-	0x38: function () {																			// SEC 
+	0x38: function () {																			// SEC
 		mos6510.register.status.carry = true;
 		return 2;
 	},
@@ -667,14 +667,14 @@ mos6510.instructionMap = {
 		mos6510.instructions.and(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
 	},
-	0x3e: function () {																			// ROL $A5B6,X 
+	0x3e: function () {																			// ROL $A5B6,X
 		var addr = mos6510.addressModeOperations.AbsoluteX(false).valueAddr;
 		var value = mos6510.instructions.rol(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
 		return 6;
 	},
 
-	0x40: function () {																			// RTI 
+	0x40: function () {																			// RTI
 		mos6510.register.status.setStatusFlags(mos6510.popFromStack());
 		var spl = mos6510.popFromStack();
 		var sph = mos6510.popFromStack();
@@ -688,11 +688,11 @@ mos6510.instructionMap = {
 	0x44: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0x45: function () {																			// EOR $A5 
+	0x45: function () {																			// EOR $A5
 		mos6510.instructions.eor(mos6510.addressModeOperations.ZeroPage(true).valueAddr);
 		return 3;
 	},
-	0x46: function () {																			// LSR $A5 
+	0x46: function () {																			// LSR $A5
 		var addr = mos6510.addressModeOperations.ZeroPage(false).valueAddr;
 		mos6510.memory.writeByte(addr, mos6510.instructions.lsr(mos6510.memory.readByte(addr)));
 		return 5;
@@ -705,7 +705,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.eor(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0x4a: function () {																			// LSR A 
+	0x4a: function () {																			// LSR A
 		mos6510.register.a = mos6510.instructions.lsr(mos6510.register.a);
 		return 2;
 	},
@@ -713,7 +713,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.alr(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0x4c: function () {																			// JMP $8532 
+	0x4c: function () {																			// JMP $8532
 		mos6510.instructions.jmp(mos6510.addressModeOperations.Absolute(false).valueAddr, false);
 		return 3;
 	},
@@ -721,20 +721,20 @@ mos6510.instructionMap = {
 		mos6510.instructions.eor(mos6510.addressModeOperations.Absolute(true).valueAddr);
 		return 4;
 	},
-	0x4e: function () {																			// LSR $A5B6 
+	0x4e: function () {																			// LSR $A5B6
 		var addr = mos6510.addressModeOperations.Absolute(false).valueAddr;
 		mos6510.memory.writeByte(addr, mos6510.instructions.lsr(mos6510.memory.readByte(addr)));
 		return 6;
 	},
 
-	0x50: function () {																			// BVC $A5 
+	0x50: function () {																			// BVC $A5
 		var addrEnv = mos6510.addressModeOperations.Relative();
 		var isBranch = mos6510.instructions.bvc(addrEnv.valueAddr);
 		if (!isBranch)
 			return 2;
 		return addrEnv.pageBoundaryCrossed ? 4 : 3;
 	},
-	0x51: function () {																			// EOR ($A5),Y 
+	0x51: function () {																			// EOR ($A5),Y
 		var valueEnv = mos6510.addressModeOperations.IndirectY(true);
 		mos6510.instructions.eor(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 6 : 5;
@@ -746,12 +746,12 @@ mos6510.instructionMap = {
 		mos6510.instructions.eor(mos6510.addressModeOperations.ZeroPageX(true).valueAddr);
 		return 4;
 	},
-	0x56: function () {																			// LSR $A5,X 
+	0x56: function () {																			// LSR $A5,X
 		var addr = mos6510.addressModeOperations.ZeroPageX(false).valueAddr;
 		mos6510.memory.writeByte(addr, mos6510.instructions.lsr(mos6510.memory.readByte(addr)));
 		return 6;
 	},
-	0x58: function () {																			// CLI 
+	0x58: function () {																			// CLI
 		mos6510.register.status.interrupt = false;
 		return 2;
 	},
@@ -760,7 +760,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.eor(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
 	},
-	0x5d: function () {																			// EOR $A5B6,X 
+	0x5d: function () {																			// EOR $A5B6,X
 		var valueEnv = mos6510.addressModeOperations.AbsoluteX(true);
 		mos6510.instructions.eor(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
@@ -777,18 +777,18 @@ mos6510.instructionMap = {
 		mos6510.register.pc = l + (h << 8) + 1;
 		return 6;
 	},
-	0x61: function () {																			// ADC ($A5,X) 
+	0x61: function () {																			// ADC ($A5,X)
 		mos6510.instructions.adc(mos6510.addressModeOperations.IndirectX(true).valueAddr);
 		return 6;
 	},
 	0x64: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0x65: function () {																			// ADC $A5 
+	0x65: function () {																			// ADC $A5
 		mos6510.instructions.adc(mos6510.addressModeOperations.ZeroPage(true).valueAddr);
 		return 3;
 	},
-	0x66: function () {																			// ROR $A5  
+	0x66: function () {																			// ROR $A5
 		var addr = mos6510.addressModeOperations.ZeroPage(false).valueAddr;
 		var value = mos6510.instructions.ror(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
@@ -804,7 +804,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.adc(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0x6a: function () {																			// ROR A 
+	0x6a: function () {																			// ROR A
 		mos6510.register.a = mos6510.instructions.ror(mos6510.register.a);
 		return 2;
 	},
@@ -812,29 +812,29 @@ mos6510.instructionMap = {
 		mos6510.instructions.arr(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0x6c: function () {																			// JMP ($8532) 
+	0x6c: function () {																			// JMP ($8532)
 		mos6510.instructions.jmp(mos6510.addressModeOperations.Absolute(false).valueAddr, true);
 		return 5;
 	},
-	0x6d: function () {																			// ADC $A5B6 
+	0x6d: function () {																			// ADC $A5B6
 		mos6510.instructions.adc(mos6510.addressModeOperations.Absolute(true).valueAddr);
 		return 5;
 	},
-	0x6e: function () {																			// ROR $A5B6  
+	0x6e: function () {																			// ROR $A5B6
 		var addr = mos6510.addressModeOperations.Absolute(false).valueAddr;
 		var value = mos6510.instructions.ror(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
 		return 6;
 	},
 
-	0x70: function () {																			// BVS $A5 
+	0x70: function () {																			// BVS $A5
 		var addrEnv = mos6510.addressModeOperations.Relative();
 		var isBranch = mos6510.instructions.bvs(addrEnv.valueAddr);
 		if (!isBranch)
 			return 2;
 		return addrEnv.pageBoundaryCrossed ? 4 : 3;
 	},
-	0x71: function () {																			// ADC ($A5),Y 
+	0x71: function () {																			// ADC ($A5),Y
 		var valueEnv = mos6510.addressModeOperations.IndirectY(true);
 		mos6510.instructions.adc(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 6 : 5;
@@ -852,7 +852,7 @@ mos6510.instructionMap = {
 		mos6510.memory.writeByte(addr, value);
 		return 6;
 	},
-	0x78: function () {																			// SEI 
+	0x78: function () {																			// SEI
 		mos6510.register.status.interrupt = true;
 		return 2;
 	},
@@ -877,7 +877,7 @@ mos6510.instructionMap = {
 	0x80: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0x81: function () {																			// STA ($85,X) 
+	0x81: function () {																			// STA ($85,X)
 		var addr = mos6510.addressModeOperations.IndirectX(false).valueAddr;
 		mos6510.instructions.sta(addr);
 		return 6;
@@ -909,7 +909,7 @@ mos6510.instructionMap = {
 		mos6510.memory.writeByte(addr, result);
 		return 3;
 	},
-	0x88: function () {																			// DEY 
+	0x88: function () {																			// DEY
 		--mos6510.register.y;
 		if (mos6510.register.y < 0)
 			mos6510.register.y = 0xff;
@@ -921,7 +921,7 @@ mos6510.instructionMap = {
 		mos6510.register.pc++
 		return 2;
 	},
-	0x8a: function () {																			// TXA 
+	0x8a: function () {																			// TXA
 		mos6510.register.a = mos6510.register.x;
 		mos6510.register.status.zero = (mos6510.register.a == 0);
 		mos6510.register.status.negative = (mos6510.register.a & 0x80) > 0;
@@ -931,15 +931,15 @@ mos6510.instructionMap = {
 		mos6510.instructions.ane(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0x8c: function () {																			// STY $A5B6 
+	0x8c: function () {																			// STY $A5B6
 		mos6510.instructions.sty(mos6510.addressModeOperations.Absolute(false).valueAddr);
 		return 4;
 	},
-	0x8d: function () {																			// STA $8532 
+	0x8d: function () {																			// STA $8532
 		mos6510.instructions.sta(mos6510.addressModeOperations.Absolute(false).valueAddr);
 		return 4;
 	},
-	0x8e: function () {																			// STX $A5B6 
+	0x8e: function () {																			// STX $A5B6
 		mos6510.instructions.stx(mos6510.addressModeOperations.Absolute(false).valueAddr);
 		return 4;
 	},
@@ -957,7 +957,7 @@ mos6510.instructionMap = {
 			return 2;
 		return addrEnv.pageBoundaryCrossed ? 4 : 3;
 	},
-	0x91: function () {																			// STA ($85),Y 
+	0x91: function () {																			// STA ($85),Y
 		mos6510.instructions.sta(mos6510.addressModeOperations.IndirectY(false).valueAddr);
 		return 6;
 	},
@@ -979,7 +979,7 @@ mos6510.instructionMap = {
 		mos6510.memory.writeByte(addr, result);
 		return 4;
 	},
-	0x98: function () {																			// TYA 
+	0x98: function () {																			// TYA
 		mos6510.register.a = mos6510.register.y;
 		mos6510.register.status.zero = (mos6510.register.a == 0);
 		mos6510.register.status.negative = (mos6510.register.a & 0x80) > 0;
@@ -1026,7 +1026,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.lda(mos6510.addressModeOperations.ZeroPage(true).valueAddr);
 		return 3;
 	},
-	0xa6: function () {																			// LDX $85 
+	0xa6: function () {																			// LDX $85
 		mos6510.instructions.ldx(mos6510.addressModeOperations.ZeroPage(true).valueAddr);
 		return 3;
 	},
@@ -1048,7 +1048,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.lda(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
-	0xaa: function () {																			// TAX 
+	0xaa: function () {																			// TAX
 		mos6510.register.x = mos6510.register.a;
 		mos6510.register.status.zero = (mos6510.register.x == 0);
 		mos6510.register.status.negative = (mos6510.register.x & 0x80) > 0;
@@ -1122,7 +1122,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.lda(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
 	},
-	0xba: function () {																			// TSX 
+	0xba: function () {																			// TSX
 		mos6510.register.x = mos6510.register.sp;
 		mos6510.register.status.zero = (mos6510.register.x == 0);
 		mos6510.register.status.negative = (mos6510.register.x & 0x80) > 0;
@@ -1163,7 +1163,7 @@ mos6510.instructionMap = {
 	0xc2: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0xc3: function () {																			// DCP ($65,X) -- illegal opcode 
+	0xc3: function () {																			// DCP ($65,X) -- illegal opcode
 		var addr = mos6510.addressModeOperations.IndirectX(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.instructions.cmp(value);
@@ -1184,7 +1184,7 @@ mos6510.instructionMap = {
 		mos6510.memory.writeByte(addr, value);
 		return 5;
 	},
-	0xc7: function () {																			// DCP $65 -- illegal opcode 
+	0xc7: function () {																			// DCP $65 -- illegal opcode
 		var addr = mos6510.addressModeOperations.ZeroPage(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.instructions.cmp(value);
@@ -1209,7 +1209,7 @@ mos6510.instructionMap = {
 		mos6510.register.status.negative = (mos6510.register.x & 0x80) > 0;
 		return 2;
 	},
-	0xcc: function () {																			// CPY $A5B6 
+	0xcc: function () {																			// CPY $A5B6
 		mos6510.instructions.cpy(mos6510.addressModeOperations.Absolute(true).valueAddr);
 		return 4;
 	},
@@ -1217,13 +1217,13 @@ mos6510.instructionMap = {
 		mos6510.instructions.cmp(mos6510.addressModeOperations.Absolute(true).valueAddr);
 		return 4;
 	},
-	0xce: function () {																			// DEC $A5B6 
+	0xce: function () {																			// DEC $A5B6
 		var addr = mos6510.addressModeOperations.Absolute(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
 		return 6;
 	},
-	0xcf: function () {																			// DCP $A5B6 -- illegal opcode 
+	0xcf: function () {																			// DCP $A5B6 -- illegal opcode
 		var addr = mos6510.addressModeOperations.Absolute(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.instructions.cmp(value);
@@ -1243,7 +1243,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.cmp(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 6 : 5;
 	},
-	0xd3: function () {																			// DCP ($65),Y -- illegal opcode  
+	0xd3: function () {																			// DCP ($65),Y -- illegal opcode
 		var addr = mos6510.addressModeOperations.IndirectY(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.instructions.cmp(value);
@@ -1253,17 +1253,17 @@ mos6510.instructionMap = {
 	0xd4: function () {																			// SKB -- illegal opcode
 		return 2;
 	},
-	0xd5: function () {																			// CMP $A5,X 
+	0xd5: function () {																			// CMP $A5,X
 		mos6510.instructions.cmp(mos6510.addressModeOperations.ZeroPageX(true).valueAddr);
 		return 4;
 	},
-	0xd6: function () {																			// DEC $A5,X 
+	0xd6: function () {																			// DEC $A5,X
 		var addr = mos6510.addressModeOperations.ZeroPageX(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
 		return 6;
 	},
-	0xd7: function () {																			// DCP $65,X -- illegal opcode 
+	0xd7: function () {																			// DCP $65,X -- illegal opcode
 		var addr = mos6510.addressModeOperations.ZeroPageX(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.instructions.cmp(value);
@@ -1279,7 +1279,7 @@ mos6510.instructionMap = {
 		mos6510.instructions.cmp(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
 	},
-	0xdb: function () {																			// DCP $65F4,Y -- illegal opcode  
+	0xdb: function () {																			// DCP $65F4,Y -- illegal opcode
 		var addr = mos6510.addressModeOperations.AbsoluteY(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.instructions.cmp(value);
@@ -1291,13 +1291,13 @@ mos6510.instructionMap = {
 		mos6510.instructions.cmp(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
 	},
-	0xde: function () {																			// DEC $A5B6,X 
+	0xde: function () {																			// DEC $A5B6,X
 		var addr = mos6510.addressModeOperations.AbsoluteX(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
 		return 7;
 	},
-	0xdf: function () {																			// DCP $A5B6,X -- illegal opcode 
+	0xdf: function () {																			// DCP $A5B6,X -- illegal opcode
 		var addr = mos6510.addressModeOperations.AbsoluteX(false).valueAddr;
 		var value = mos6510.instructions.dec(mos6510.memory.readByte(addr));
 		mos6510.instructions.cmp(value);
@@ -1348,7 +1348,7 @@ mos6510.instructionMap = {
 	0xea: function () {																			// NOP
 		return 2;
 	},
-    0xeb: function () {																			// SBC #$A5 -- illegal opcode
+	0xeb: function () {																			// SBC #$A5 -- illegal opcode
 		mos6510.instructions.sbc(mos6510.addressModeOperations.Immediate().valueAddr);
 		return 2;
 	},
@@ -1386,22 +1386,22 @@ mos6510.instructionMap = {
 		mos6510.instructions.sbc(mos6510.addressModeOperations.ZeroPageX(true).valueAddr);
 		return 4;
 	},
-	0xf6: function () {																			// INC $A5,X 
+	0xf6: function () {																			// INC $A5,X
 		var addr = mos6510.addressModeOperations.ZeroPageX(false).valueAddr;
 		var value = mos6510.instructions.inc(mos6510.memory.readByte(addr));
 		mos6510.memory.writeByte(addr, value);
 		return 6;
 	},
-	0xf8: function () {																			// SED 
+	0xf8: function () {																			// SED
 		mos6510.register.status.decimal = true;
 		return 2;
 	},
-	0xf9: function () {																			// SBC $A5B6,Y 
+	0xf9: function () {																			// SBC $A5B6,Y
 		var valueEnv = mos6510.addressModeOperations.AbsoluteY(true);
 		mos6510.instructions.sbc(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
 	},
-	0xfd: function () {																			// SBC $A5B6,X 
+	0xfd: function () {																			// SBC $A5B6,X
 		var valueEnv = mos6510.addressModeOperations.AbsoluteX(true);
 		mos6510.instructions.sbc(valueEnv.valueAddr);
 		return valueEnv.pageBoundaryCrossed ? 5 : 4;
