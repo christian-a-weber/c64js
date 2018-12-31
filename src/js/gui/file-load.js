@@ -1,24 +1,25 @@
 var fileLoad = fileLoad || {};
 
-fileLoad.data = [];
+fileLoad.data = null;
 fileLoad.filename = "";
 
 fileLoad.saveToMemory = function() {
-	var fileArray = new Uint8Array(this.data);
-	var baseAddress = fileArray[0] | (fileArray[1] << 8)
-	var dataArray = fileArray.subarray(2);
-	
-	for (var index = 0; index < dataArray.byteLength; index++) {
-		memoryManager.ram.onWriteByte(baseAddress + index, dataArray[index]);
+	if (this.data) {
+		var baseAddress = this.data[0] | (this.data[1] << 8)
+		var dataArray = this.data.subarray(2);
+
+		for (var index = 0; index < dataArray.byteLength; index++) {
+			memoryManager.ram.onWriteByte(baseAddress + index, dataArray[index]);
+		}
+
+		memoryManager.ram.onWriteByte(0xae, (baseAddress + dataArray.length) & 0xff);
+		memoryManager.ram.onWriteByte(0xaf, ((baseAddress + dataArray.length) >> 8) & 0xff);
+
+		var result = {filename:this.filename, base:baseAddress, length:dataArray.length}
+		this.data = null;
+		this.filename = "";
+		console.log('file "' + result.filename + '": ' + result.length.toString() + ' bytes loaded at $' + result.base.toString(16));
 	}
-
-	memoryManager.ram.onWriteByte(0xae, (baseAddress + dataArray.length) & 0xff);
-	memoryManager.ram.onWriteByte(0xaf, ((baseAddress + dataArray.length) >> 8) & 0xff);
-
-	var result = {filename:this.filename, base:baseAddress, length:dataArray.length}
-	this.data = [];
-	this.filename = "";
-	console.log('file "' + result.filename + '": ' + result.length.toString() + ' bytes loaded at $' + result.base.toString(16));
 	return result;
 }
 
@@ -43,7 +44,12 @@ fileLoad.load = function(file) {
 	//if(file.name.toLowerCase().endsWith('.prg')) {
 	var reader = new FileReader();
 	reader.onload = function(e) {
-		fileLoad.data = reader.result;
+		fileLoad.data = new Uint8Array(reader.result);
+
+		// Is this a .p00 file? If so, skip its header
+		if (fileLoad.data.byteLength >= 26 && fileLoad.data[0] == 0x43 && fileLoad.data[1] == 0x36 && fileLoad.data[2] == 0x34)
+			fileLoad.data = fileLoad.data.subarray(26);
+
 		fileLoad.filename = file.name;
 		fileLoad.writeAutoRun(); // Will trigger the LOAD hook
 	};
@@ -51,7 +57,7 @@ fileLoad.load = function(file) {
 	/*
 	} else if(file.name.toLowerCase().endsWith('.d64')) {
 		fileLoad.parseD64.loadImage(file);
-	}  
+	}
 	else {
 		alert('The uploaded files format was not supported. Supported files are .prg');
 	}
@@ -61,7 +67,7 @@ fileLoad.load = function(file) {
 fileLoad.parseD64 = {};
 fileLoad.parseD64.discImageArray = [];
 fileLoad.parseD64.trackOffsets = [0, 0x00000, 0x01500, 0x02A00, 0x03F00, 0x05400, 0x06900, 0x07E00, 0x09300,
-									0x0A800, 0x0BD00, 0x0D200, 0x0E700, 0x0FC00, 0x11100, 0x12600, 0x13B00, 
+									0x0A800, 0x0BD00, 0x0D200, 0x0E700, 0x0FC00, 0x11100, 0x12600, 0x13B00,
 									0x15000, 0x16500, 0x17800, 0x18B00, 0x19E00, 0x1B100, 0x1C400, 0x1D700,
 									0x1EA00, 0x1FC00, 0x20E00, 0x22000, 0x23200, 0x24400, 0x25600, 0x26700,
 									0x27800, 0x28900, 0x29A00, 0x2AB00, 0x2BC00, 0x2CD00, 0x2DE00, 0x2EF00];
@@ -92,7 +98,7 @@ fileLoad.parseD64.loadItemFromImage = function(item) {
 
 fileLoad.parseD64.getSector = function(track, sector) {
 	var startAddr = fileLoad.parseD64.trackOffsets[track] + (sector * 256);
-	var data = fileLoad.parseD64.discImageArray.slice(startAddr + 2, startAddr + 254); 
+	var data = fileLoad.parseD64.discImageArray.slice(startAddr + 2, startAddr + 254);
 	return {
 		nextTrack: fileLoad.parseD64.discImageArray[startAddr],
 		nextSector: fileLoad.parseD64.discImageArray[startAddr + 1],
@@ -114,11 +120,11 @@ fileLoad.parseD64.loadImage = function(file) {
 		fileLoad.parseD64.getBam();
 		fileLoad.parseD64.getDiscEntries(8);
 		fileLoad.parseD64.discPointer = fileLoad.parseD64.trackOffsets[18];
-		
+
 		menu.items.disc = [];
 		for (var o in fileLoad.parseD64.content.entries) {
-			
-			menu.items.disc.push({ 
+
+			menu.items.disc.push({
 				title: fileLoad.parseD64.content.entries[o].name,
 				action: function() { fileLoad.parseD64.loadItemFromImage(this); },
 				selected: false,
@@ -130,7 +136,7 @@ fileLoad.parseD64.loadImage = function(file) {
 		menu.items.disc.push({ title: 'Unmount drive', action: function() {
 			menu.items.disc = [];
 			fileLoad.parseD64.discImageArray = [];
-			var menuItem = document.getElementById('discMenuItem'); 
+			var menuItem = document.getElementById('discMenuItem');
 			menuItem.className = menuItem.className.replace(' disc-loaded', '');
 			menu.closeMenu();
 		}});
@@ -145,7 +151,7 @@ fileLoad.parseD64.getBam = function() {
 	fileLoad.parseD64.discPointer += 0x70;
 	var name = [];
 	for(var i = 0; i < 16; i++) {
-		name[i] = (discName[i] > 31) && (discName[i] < 94) ? utils.petsciiTable[discName[i]] : '-';          
+		name[i] = (discName[i] > 31) && (discName[i] < 94) ? utils.petsciiTable[discName[i]] : '-';
 	}
 	fileLoad.parseD64.content.discName = name.join('');
 };
@@ -161,13 +167,13 @@ fileLoad.parseD64.getDiscEntries = function(itteration) {
 	var filetype =  fileLoad.parseD64.fileTypes[fileState & 0x07];
 	// Support more than prg-files?
 	if ((fileState & 0x80) != 0 && filetype == 'PRG') {
-		
+
 		var firstTrackOfFile = fileLoad.parseD64.discImageArray[fileLoad.parseD64.discPointer + 0x03];
 		var firstSectorOfFile = fileLoad.parseD64.discImageArray[fileLoad.parseD64.discPointer + 0x04];
 		var fileSizeLowByte = fileLoad.parseD64.discImageArray[fileLoad.parseD64.discPointer + 0x1e];
 		var fileSizeHighByte = fileLoad.parseD64.discImageArray[fileLoad.parseD64.discPointer + 0x1f];
 		var fileSizeInSectors = fileSizeLowByte | (fileSizeHighByte << 8);
-		
+
 		fileLoad.parseD64.discPointer += 0x05
 		var entryName = fileLoad.parseD64.discImageArray.slice(fileLoad.parseD64.discPointer, fileLoad.parseD64.discPointer + 16);
 		var name = [];
@@ -176,9 +182,9 @@ fileLoad.parseD64.getDiscEntries = function(itteration) {
 				name[i] = utils.petsciiTable[entryName[i]] ? utils.petsciiTable[entryName[i]] : '?';
 			} else {
 				name[i] = '';
-			}          
+			}
 		}
-		fileLoad.parseD64.content.entries[fileLoad.parseD64.content.numberOfEntries++] = { 
+		fileLoad.parseD64.content.entries[fileLoad.parseD64.content.numberOfEntries++] = {
 			name: name.join(''),
 			filetype: filetype,
 			firstTrackOfFile: firstTrackOfFile,
@@ -191,8 +197,8 @@ fileLoad.parseD64.getDiscEntries = function(itteration) {
 	}
 	itteration = itteration - 1;
 	if (itteration > 0)
-	fileLoad.parseD64.getDiscEntries(itteration); 
-	
+	fileLoad.parseD64.getDiscEntries(itteration);
+
 	if (itteration == 7) {
 		if (nextEntryTrack > 0) {
 			fileLoad.parseD64.discPointer = fileLoad.parseD64.trackOffsets[nextEntryTrack] + (nextEntrySector * 256);
@@ -202,13 +208,13 @@ fileLoad.parseD64.getDiscEntries = function(itteration) {
 }
 
 fileLoad.setDropArea = function(dropElement) {
-	
-	dropElement.addEventListener('dragover', function(e) { 
+
+	dropElement.addEventListener('dragover', function(e) {
 		e.preventDefault();
 	}, true);
-	
-	dropElement.addEventListener('drop', function(e) { 
-		e.preventDefault(); 
+
+	dropElement.addEventListener('drop', function(e) {
+		e.preventDefault();
 		fileLoad.load(e.dataTransfer.files[0]);
 	}, true);
 }

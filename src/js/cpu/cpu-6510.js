@@ -1695,7 +1695,7 @@ mos6510.nmi = false;
 mos6510.checkBreakPoints = function () {
 
 	// LOAD hook
-	if (this.register.pc == 0xF4A5 && fileLoad.data.byteLength > 0) {
+	if (this.register.pc == 0xF4A5 && fileLoad.data) {
 		var result = fileLoad.saveToMemory();	// will set $AE/$AF to length
 
 		this.register.a = 0;
