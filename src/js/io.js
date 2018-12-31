@@ -11,11 +11,7 @@ memoryManager.io.onWriteByte = function(address, data) {
 	/* SID */
 	if (address >= 0xd400 && address <= 0xd7ff) {
         sid.play();
-        sidPlayer.synth.poke(address & 0x1f, data);
-        if (address > 0xd418) {
-            console.log("attempted digi poke:", address, data);
-            sidPlayer.synth.pokeDigi(address, data);
-        }
+        sid.poke(address & 0x1f, data);
 	}
 	
 	/* Color ram */

@@ -1,5 +1,5 @@
 
-var sid = sid || {};
+var sid = sid || { sidPlayer: null };
 
 /*
 The following is ripped from jssid.core.js and shouldn't be uncommented here.
@@ -16,20 +16,34 @@ jsSID.quality = Object.freeze({
 */
 
 sid.init = function() {
-    //sidPlayer = new jsSID.SIDPlayer({ quality: getQuality(), clock: getFreq(), model: getModel() });
-    //sidPlayer = new jsSID.SIDPlayer({quality: jsSID.quality.good, clock: jsSID.chip.clock.PAL, model: jsSID.chip.model.MOS6581});
-    //sidPlayer = new jsSID.SIDPlayer();
-    sidPlayer = new jsSID.SIDPlayer({quality: jsSID.quality.low});
-    sidPlayer.play();
+    //this.sidPlayer = new jsSID.SIDPlayer({ quality: getQuality(), clock: getFreq(), model: getModel() });
+    //this.sidPlayer = new jsSID.SIDPlayer({quality: jsSID.quality.good, clock: jsSID.chip.clock.PAL, model: jsSID.chip.model.MOS6581});
+    //this.sidPlayer = new jsSID.SIDPlayer();
+    this.sidPlayer = new jsSID.SIDPlayer({quality: jsSID.quality.low});
+    this.sidPlayer.play();
 }
 
 sid.play = function () {
-    sidPlayer.play();
+	if (this.sidPlayer)
+		this.sidPlayer.play();
 }
 
 sid.stop = function () {
-    sidPlayer.stop();
+	if (this.sidPlayer)
+		this.sidPlayer.stop();
 }
+
+sid.poke = function(address, data) {
+	if (this.sidPlayer) {
+		sid.play();
+		if (address <= 0xd418) {
+			this.sidPlayer.synth.poke(address, data);
+		} else {
+			this.sidPlayer.synth.pokeDigi(address, data);
+		}
+	}
+};
+
 
 // constructor
 jsSID.SIDPlayer = function(opts) {
