@@ -36,7 +36,7 @@ memoryManager.cia2.onWriteByte = function(address, data) {
 			memoryManager.cia2.vicBankMask = data;
 			break;
 		default:
-			console.log('write to cia2: ' + data.toString(2) + ' @ ' + address.toString(16));
+			console.log('unhandled write to cia2: ' + data.toString(2) + ' @ ' + address.toString(16));
 			break;
 	}
 };
@@ -48,7 +48,7 @@ memoryManager.cia2.onReadByte = function(address) {
 		case 0x02:
 			return this.vicBankMask;
 		default:
-			console.log('Reading from cia2: ' + address.toString(16));
+			console.log('unhandled read from cia2: ' + address.toString(16));
 			break;
 	}
 };

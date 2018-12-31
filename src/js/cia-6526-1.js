@@ -49,12 +49,12 @@ memoryManager.cia1.onWriteByte = function(address, data) {
 			break;
 		// direction of data port A (0 = read only, 1 = read and write)
 		case 0x02:
-			console.log('direction of port a: ' + data.toString(2));
+			console.log('set cia1 dra to %' + data.toString(2));
 			memoryManager.cia1.directionOfPortA = data;
 			break;
 		// direction of data port B (0 = read only, 1 = read and write)
 		case 0x03:
-			console.log('direction of port b: ' + data.toString(2));
+			console.log('set cia1 drb to %' + data.toString(2));
 			memoryManager.cia1.directionOfPortB = data;
 			break;
 		case 0x04:
@@ -153,12 +153,15 @@ memoryManager.cia1.onReadByte = function(address) {
 			return 0x11;
 		/* 0x0c = The byte within this register will be shifted bitwise to or from the SP-pin with every positive slope at the CNT-pin. */
 		case 0x0d:
-			/* TODO */
+			/* TODO implement remaining bits */
+			return this.timer_A_underflow << 0 | this.timer_B_underflow << 1;
 			break;
 		case 0x0e:
 			/* TODO */
+			console.log('unhandled read from cia1: ' + address.toString(16));
 			break;
 		default:
+			console.log('unhandled read from cia1: ' + address.toString(16));
 			break;
 	}
 };
