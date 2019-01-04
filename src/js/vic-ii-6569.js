@@ -94,91 +94,91 @@ vic2.onWriteByte = function(address, data) {
 	switch (address & 0x3f) {		// vic2 memory map is repeated every 64 bytes
 
 		case 0x00:		// $d000: sprite0 x
-			vic2.sprites[0].x = (vic2.sprites[0].x & 0x100) | data;
+			this.sprites[0].x = (this.sprites[0].x & 0x100) | data;
 			break;
 
 		case 0x01:		// $d001: sprite0 y
-			vic2.sprites[0].y = data;
+			this.sprites[0].y = data;
 			break;
 
 		case 0x02:		// $d002: sprite1 x
-			vic2.sprites[1].x = (vic2.sprites[1].x & 0x100) | data;
+			this.sprites[1].x = (this.sprites[1].x & 0x100) | data;
 			break;
 
 		case 0x03:		// $d003: sprite1 y
-			vic2.sprites[1].y = data;
+			this.sprites[1].y = data;
 			break;
 
 		case 0x04:		// $d004: sprite2 x
-			vic2.sprites[2].x = (vic2.sprites[2].x & 0x100) | data;
+			this.sprites[2].x = (this.sprites[2].x & 0x100) | data;
 			break;
 
 		case 0x05:		// $d005: sprite2 y
-			vic2.sprites[2].y = data;
+			this.sprites[2].y = data;
 			break;
 
 		case 0x06:		// $d006: sprite3 x
-			vic2.sprites[3].x = (vic2.sprites[3].x & 0x100) | data;
+			this.sprites[3].x = (this.sprites[3].x & 0x100) | data;
 			break;
 
 		case 0x07:		// $d007: sprite3 y
-			vic2.sprites[3].y = data;
+			this.sprites[3].y = data;
 			break;
 
 		case 0x08:		// $d008: sprite4 x
-			vic2.sprites[4].x = (vic2.sprites[4].x & 0x100) | data;
+			this.sprites[4].x = (this.sprites[4].x & 0x100) | data;
 			break;
 
 		case 0x09:		// $d009: sprite4 y
-			vic2.sprites[4].y = data;
+			this.sprites[4].y = data;
 			break;
 
 		case 0x0a:		// $d00a: sprite5 x
-			vic2.sprites[5].x = (vic2.sprites[5].x & 0x100) | data;
+			this.sprites[5].x = (this.sprites[5].x & 0x100) | data;
 			break;
 
 		case 0x0b:		// $d00b: sprite5 y
-			vic2.sprites[5].y = data;
+			this.sprites[5].y = data;
 			break;
 
 		case 0x0c:		// $d00c: sprite6 x
-			vic2.sprites[6].x = (vic2.sprites[6].x & 0x100) | data;
+			this.sprites[6].x = (this.sprites[6].x & 0x100) | data;
 			break;
 
 		case 0x0d:		// $d00d: sprite6 y
-			vic2.sprites[6].y = data;
+			this.sprites[6].y = data;
 			break;
 
 		case 0x0e:		// $d00e: sprite7 x
-			vic2.sprites[7].x = (vic2.sprites[7].x & 0x100) | data;
+			this.sprites[7].x = (this.sprites[7].x & 0x100) | data;
 			break;
 
 		case 0x0f:		// $d000: sprite7 y
-			vic2.sprites[7].y = data;
+			this.sprites[7].y = data;
 			break;
 
 		case 0x10:		// $d010: sprite 0-7 x msb
-			vic2.sprites[0].x = (data & 0x01) << 8 | vic2.sprites[0].x & 0xff;
-			vic2.sprites[1].x = (data & 0x02) << 7 | vic2.sprites[1].x & 0xff;
-			vic2.sprites[2].x = (data & 0x04) << 6 | vic2.sprites[2].x & 0xff;
-			vic2.sprites[3].x = (data & 0x08) << 5 | vic2.sprites[3].x & 0xff;
-			vic2.sprites[4].x = (data & 0x10) << 4 | vic2.sprites[4].x & 0xff;
-			vic2.sprites[5].x = (data & 0x20) << 3 | vic2.sprites[5].x & 0xff;
-			vic2.sprites[6].x = (data & 0x40) << 2 | vic2.sprites[6].x & 0xff;
-			vic2.sprites[7].x = (data & 0x80) << 1 | vic2.sprites[7].x & 0xff;
+			this.sprites[0].x = (data & 0x01) << 8 | this.sprites[0].x & 0xff;
+			this.sprites[1].x = (data & 0x02) << 7 | this.sprites[1].x & 0xff;
+			this.sprites[2].x = (data & 0x04) << 6 | this.sprites[2].x & 0xff;
+			this.sprites[3].x = (data & 0x08) << 5 | this.sprites[3].x & 0xff;
+			this.sprites[4].x = (data & 0x10) << 4 | this.sprites[4].x & 0xff;
+			this.sprites[5].x = (data & 0x20) << 3 | this.sprites[5].x & 0xff;
+			this.sprites[6].x = (data & 0x40) << 2 | this.sprites[6].x & 0xff;
+			this.sprites[7].x = (data & 0x80) << 1 | this.sprites[7].x & 0xff;
 			break;
 
 		case 0x11:		// $d011: control register 1
-			vic2.screenControlRegister.yScroll = data & 0x07;
-			vic2.screenControlRegister.screenHeight = (data & 0x08) > 0;
-			vic2.screenControlRegister.screenOn = (data & 0x10) > 0;
-			vic2.screenControlRegister.renderMode = (data & 0x20) > 0;
-			vic2.screenControlRegister.extendedBackground = (data & 0x40) > 0;
-			vic2.screenControlRegister.interruptRasterLine = (data & 0x80) << 1 | vic2.screenControlRegister.interruptRasterLine & 0xff;
+			this.screenControlRegister.yScroll = data & 0x07;
+			this.screenControlRegister.screenHeight = (data & 0x08) > 0;
+			this.screenControlRegister.screenOn = (data & 0x10) > 0;
+			this.screenControlRegister.renderMode = (data & 0x20) > 0;
+			this.screenControlRegister.extendedBackground = (data & 0x40) > 0;
+			this.screenControlRegister.interruptRasterLine = (data & 0x80) << 1 | this.screenControlRegister.interruptRasterLine & 0xff;
 			break;
 
 		case 0x12:		// $d012: raster counter
-		    vic2.screenControlRegister.interruptRasterLine = vic2.screenControlRegister.interruptRasterLine & 0x100 | data & 0xff;
+			this.screenControlRegister.interruptRasterLine = this.screenControlRegister.interruptRasterLine & 0x100 | data & 0xff;
 			break;
 
 		case 0x13:		// $d013: lightpen x (not implemented)
@@ -188,82 +188,82 @@ vic2.onWriteByte = function(address, data) {
 			break;
 
 		case 0x15:		// $d015: sprite enable
-			vic2.sprites[0].enabled = (data & 0x01) > 0;
-			vic2.sprites[1].enabled = (data & 0x02) > 0;
-			vic2.sprites[2].enabled = (data & 0x04) > 0;
-			vic2.sprites[3].enabled = (data & 0x08) > 0;
-			vic2.sprites[4].enabled = (data & 0x10) > 0;
-			vic2.sprites[5].enabled = (data & 0x20) > 0;
-			vic2.sprites[6].enabled = (data & 0x40) > 0;
-			vic2.sprites[7].enabled = (data & 0x80) > 0;
+			this.sprites[0].enabled = (data & 0x01) > 0;
+			this.sprites[1].enabled = (data & 0x02) > 0;
+			this.sprites[2].enabled = (data & 0x04) > 0;
+			this.sprites[3].enabled = (data & 0x08) > 0;
+			this.sprites[4].enabled = (data & 0x10) > 0;
+			this.sprites[5].enabled = (data & 0x20) > 0;
+			this.sprites[6].enabled = (data & 0x40) > 0;
+			this.sprites[7].enabled = (data & 0x80) > 0;
 			break;
 
 		case 0x16:		// $d016: control register 2
-			vic2.screenControlRegister.xScroll = data & 0x07;
-			vic2.screenControlRegister.screenWidth = (data & 0x08) > 0;
-			vic2.screenControlRegister.multiColor = (data & 0x10) > 0;
+			this.screenControlRegister.xScroll = data & 0x07;
+			this.screenControlRegister.screenWidth = (data & 0x08) > 0;
+			this.screenControlRegister.multiColor = (data & 0x10) > 0;
 			break;
 
 		case 0x17:		// $d017: sprite double height
-			vic2.sprites[0].doubleHeight = (data & 0x01) > 0;
-			vic2.sprites[1].doubleHeight = (data & 0x02) > 0;
-			vic2.sprites[2].doubleHeight = (data & 0x04) > 0;
-			vic2.sprites[3].doubleHeight = (data & 0x08) > 0;
-			vic2.sprites[4].doubleHeight = (data & 0x10) > 0;
-			vic2.sprites[5].doubleHeight = (data & 0x20) > 0;
-			vic2.sprites[6].doubleHeight = (data & 0x40) > 0;
-			vic2.sprites[7].doubleHeight = (data & 0x80) > 0;
+			this.sprites[0].doubleHeight = (data & 0x01) > 0;
+			this.sprites[1].doubleHeight = (data & 0x02) > 0;
+			this.sprites[2].doubleHeight = (data & 0x04) > 0;
+			this.sprites[3].doubleHeight = (data & 0x08) > 0;
+			this.sprites[4].doubleHeight = (data & 0x10) > 0;
+			this.sprites[5].doubleHeight = (data & 0x20) > 0;
+			this.sprites[6].doubleHeight = (data & 0x40) > 0;
+			this.sprites[7].doubleHeight = (data & 0x80) > 0;
 			break;
 
 		case 0x18:		// $d018: memory setup register
-			vic2.memorySetupRegister.pointerToBitmapMemory = (data & 0x08) << 10;
-			vic2.memorySetupRegister.pointerToCharMemory   = (data & 0x0e) << 10;
-			vic2.memorySetupRegister.pointerToScreenMemory = (data & 0xf0) << 6;
+			this.memorySetupRegister.pointerToBitmapMemory = (data & 0x08) << 10;
+			this.memorySetupRegister.pointerToCharMemory   = (data & 0x0e) << 10;
+			this.memorySetupRegister.pointerToScreenMemory = (data & 0xf0) << 6;
 			break;
 
 		case 0x19:		// $d019: acknowledge interrupts (write 1 to clear an interrupt bit)
-			if (data & 0x01) vic2.interruptRegister.events.rasterLineOccurred = false;
-			if (data & 0x02) vic2.interruptRegister.events.spriteBackgroundCollisionOccurred = false;
-			if (data & 0x04) vic2.interruptRegister.events.spriteSpriteCollisionOccurred = false;
+			if (data & 0x01) this.interruptRegister.events.rasterLineOccurred = false;
+			if (data & 0x02) this.interruptRegister.events.spriteBackgroundCollisionOccurred = false;
+			if (data & 0x04) this.interruptRegister.events.spriteSpriteCollisionOccurred = false;
 			break;
 
 		case 0x1a:		// $d01a: interrupt enabled
-			vic2.interruptRegister.mask.rasterLineEnabled = (data & 0x01) > 0;
-			vic2.interruptRegister.mask.spriteBackgroundCollisionEnabled = (data & 0x02) > 0;
-			vic2.interruptRegister.mask.spriteSpriteCollisionEnabled = (data & 0x04) > 0;
+			this.interruptRegister.mask.rasterLineEnabled = (data & 0x01) > 0;
+			this.interruptRegister.mask.spriteBackgroundCollisionEnabled = (data & 0x02) > 0;
+			this.interruptRegister.mask.spriteSpriteCollisionEnabled = (data & 0x04) > 0;
 			break;
 
 		case 0x1b:		// $d01b: sprite priority
-			vic2.sprites[0].isBehindContents = (data & 0x01) > 0;
-			vic2.sprites[1].isBehindContents = (data & 0x02) > 0;
-			vic2.sprites[2].isBehindContents = (data & 0x04) > 0;
-			vic2.sprites[3].isBehindContents = (data & 0x08) > 0;
-			vic2.sprites[4].isBehindContents = (data & 0x10) > 0;
-			vic2.sprites[5].isBehindContents = (data & 0x20) > 0;
-			vic2.sprites[6].isBehindContents = (data & 0x40) > 0;
-			vic2.sprites[7].isBehindContents = (data & 0x80) > 0;
+			this.sprites[0].isBehindContents = (data & 0x01) > 0;
+			this.sprites[1].isBehindContents = (data & 0x02) > 0;
+			this.sprites[2].isBehindContents = (data & 0x04) > 0;
+			this.sprites[3].isBehindContents = (data & 0x08) > 0;
+			this.sprites[4].isBehindContents = (data & 0x10) > 0;
+			this.sprites[5].isBehindContents = (data & 0x20) > 0;
+			this.sprites[6].isBehindContents = (data & 0x40) > 0;
+			this.sprites[7].isBehindContents = (data & 0x80) > 0;
 			break;
 
 		case 0x1c:		// $d01c: sprite multicolor
-			vic2.sprites[0].multicolor = (data & 0x01) > 0;
-			vic2.sprites[1].multicolor = (data & 0x02) > 0;
-			vic2.sprites[2].multicolor = (data & 0x04) > 0;
-			vic2.sprites[3].multicolor = (data & 0x08) > 0;
-			vic2.sprites[4].multicolor = (data & 0x10) > 0;
-			vic2.sprites[5].multicolor = (data & 0x20) > 0;
-			vic2.sprites[6].multicolor = (data & 0x40) > 0;
-			vic2.sprites[7].multicolor = (data & 0x80) > 0;
+			this.sprites[0].multicolor = (data & 0x01) > 0;
+			this.sprites[1].multicolor = (data & 0x02) > 0;
+			this.sprites[2].multicolor = (data & 0x04) > 0;
+			this.sprites[3].multicolor = (data & 0x08) > 0;
+			this.sprites[4].multicolor = (data & 0x10) > 0;
+			this.sprites[5].multicolor = (data & 0x20) > 0;
+			this.sprites[6].multicolor = (data & 0x40) > 0;
+			this.sprites[7].multicolor = (data & 0x80) > 0;
 			break;
 
 		case 0x1d:		// $d01d: sprite double width
-			vic2.sprites[0].doubleWidth = (data & 0x01) > 0;
-			vic2.sprites[1].doubleWidth = (data & 0x02) > 0;
-			vic2.sprites[2].doubleWidth = (data & 0x04) > 0;
-			vic2.sprites[3].doubleWidth = (data & 0x08) > 0;
-			vic2.sprites[4].doubleWidth = (data & 0x10) > 0;
-			vic2.sprites[5].doubleWidth = (data & 0x20) > 0;
-			vic2.sprites[6].doubleWidth = (data & 0x40) > 0;
-			vic2.sprites[7].doubleWidth = (data & 0x80) > 0;
+			this.sprites[0].doubleWidth = (data & 0x01) > 0;
+			this.sprites[1].doubleWidth = (data & 0x02) > 0;
+			this.sprites[2].doubleWidth = (data & 0x04) > 0;
+			this.sprites[3].doubleWidth = (data & 0x08) > 0;
+			this.sprites[4].doubleWidth = (data & 0x10) > 0;
+			this.sprites[5].doubleWidth = (data & 0x20) > 0;
+			this.sprites[6].doubleWidth = (data & 0x40) > 0;
+			this.sprites[7].doubleWidth = (data & 0x80) > 0;
 			break;
 
 		case 0x1e:		// $d01e: sprite-sprite collision (read-only register)
@@ -338,66 +338,66 @@ vic2.onReadByte = function(address) {
 	switch (address & 0x3f) {		// vic2 memory map is repeated every 64 bytes
 
 		case 0x00:		// $d000: sprite0 x
-			return vic2.sprites[0].x & 0xff;
+			return this.sprites[0].x & 0xff;
 
 		case 0x01:		// $d001: sprite0 y
-			return vic2.sprites[0].y;
+			return this.sprites[0].y;
 
 		case 0x02:		// $d002: sprite1 x
-			return vic2.sprites[1].x & 0xff;
+			return this.sprites[1].x & 0xff;
 
 		case 0x03:		// $d003: sprite1 y
-			return vic2.sprites[1].y;
+			return this.sprites[1].y;
 
 		case 0x04:		// $d004: sprite2 x
-			return vic2.sprites[2].x & 0xff;
+			return this.sprites[2].x & 0xff;
 
 		case 0x05:		// $d005: sprite2 y
-			return vic2.sprites[2].y;
+			return this.sprites[2].y;
 
 		case 0x06:		// $d006: sprite3 x
-			return vic2.sprites[3].x & 0xff;
+			return this.sprites[3].x & 0xff;
 
 		case 0x07:		// $d007: sprite3 y
-			return vic2.sprites[3].y;
+			return this.sprites[3].y;
 
 		case 0x08:		// $d008: sprite4 x
-			return vic2.sprites[4].x & 0xff;
+			return this.sprites[4].x & 0xff;
 
 		case 0x09:		// $d009: sprite4 y
-			return vic2.sprites[4].y;
+			return this.sprites[4].y;
 
 		case 0x0a:		// $d00a: sprite5 x
-			return vic2.sprites[5].x & 0xff;
+			return this.sprites[5].x & 0xff;
 
 		case 0x0b:		// $d00b: sprite5 y
-			return vic2.sprites[5].y;
+			return this.sprites[5].y;
 
 		case 0x0c:		// $d00c: sprite6 x
-			return vic2.sprites[6].x & 0xff;
+			return this.sprites[6].x & 0xff;
 
 		case 0x0d:		// $d00d: sprite6 y
-			return vic2.sprites[6].y;
+			return this.sprites[6].y;
 
 		case 0x0e:		// $d00e: sprite7 x
-			return vic2.sprites[7].x & 0xff;
+			return this.sprites[7].x & 0xff;
 
 		case 0x0f:		// $d000: sprite7 y
-			return vic2.sprites[7].y;
+			return this.sprites[7].y;
 
 		case 0x10:		// $d010: sprite 0-7 x msb
-			return (vic2.sprites[0].x & 0x100) >> 8 | (vic2.sprites[1].x & 0x100) >> 7
-			     | (vic2.sprites[2].x & 0x100) >> 6 | (vic2.sprites[3].x & 0x100) >> 5
-			     | (vic2.sprites[4].x & 0x100) >> 4 | (vic2.sprites[5].x & 0x100) >> 3
-			     | (vic2.sprites[6].x & 0x100) >> 2 | (vic2.sprites[7].x & 0x100) >> 1;
+			return (this.sprites[0].x & 0x100) >> 8 | (this.sprites[1].x & 0x100) >> 7
+			     | (this.sprites[2].x & 0x100) >> 6 | (this.sprites[3].x & 0x100) >> 5
+			     | (this.sprites[4].x & 0x100) >> 4 | (this.sprites[5].x & 0x100) >> 3
+			     | (this.sprites[6].x & 0x100) >> 2 | (this.sprites[7].x & 0x100) >> 1;
 
 		case 0x11:		// $d011: control register 1
-			return (vic2.screenControlRegister.yScroll & 0x07) | (vic2.screenControlRegister.screenHeight ? 0x08 : 0x00)
-			     | (vic2.screenControlRegister.screenOn ? 0x10 : 0x00) | (vic2.screenControlRegister.renderMode ? 0x20 : 0x00)
-			     | (vic2.screenControlRegister.extendedBackground ? 0x40 : 0x00) | (vic2.screenControlRegister.currentRasterLine & 0x100) >> 1;
+			return (this.screenControlRegister.yScroll & 0x07) | (this.screenControlRegister.screenHeight ? 0x08 : 0x00)
+			     | (this.screenControlRegister.screenOn ? 0x10 : 0x00) | (this.screenControlRegister.renderMode ? 0x20 : 0x00)
+			     | (this.screenControlRegister.extendedBackground ? 0x40 : 0x00) | (this.screenControlRegister.currentRasterLine & 0x100) >> 1;
 
 		case 0x12:		// $d012: raster counter low bits
-			return vic2.screenControlRegister.currentRasterLine & 0xff;
+			return this.screenControlRegister.currentRasterLine & 0xff;
 
 		case 0x13:		// $d013: lightpen x (not implemented)
 			return 0;
@@ -406,64 +406,64 @@ vic2.onReadByte = function(address) {
 			return 0;
 
 		case 0x15:		// $d015: sprite enable
-			return vic2.sprites[0].enabled << 0 | vic2.sprites[1].enabled << 1
-			     | vic2.sprites[2].enabled << 2 | vic2.sprites[3].enabled << 3
-			     | vic2.sprites[4].enabled << 4 | vic2.sprites[5].enabled << 5
-			     | vic2.sprites[6].enabled << 6 | vic2.sprites[7].enabled << 7;
+			return this.sprites[0].enabled << 0 | this.sprites[1].enabled << 1
+			     | this.sprites[2].enabled << 2 | this.sprites[3].enabled << 3
+			     | this.sprites[4].enabled << 4 | this.sprites[5].enabled << 5
+			     | this.sprites[6].enabled << 6 | this.sprites[7].enabled << 7;
 
 		case 0x16:		// $d016: control register 2
-			return (vic2.screenControlRegister.xScroll & 0x07)
-			     | (vic2.screenControlRegister.screenWidth ? 0x08 : 0x00)
-			     | (vic2.screenControlRegister.multiColor  ? 0x10 : 0x00);
+			return (this.screenControlRegister.xScroll & 0x07)
+			     | (this.screenControlRegister.screenWidth ? 0x08 : 0x00)
+			     | (this.screenControlRegister.multiColor  ? 0x10 : 0x00);
 
 		case 0x17:		// $d017: sprite double height
-			return vic2.sprites[0].doubleHeight << 0 | vic2.sprites[1].doubleHeight << 1
-			     | vic2.sprites[2].doubleHeight << 2 | vic2.sprites[3].doubleHeight << 3
-			     | vic2.sprites[4].doubleHeight << 4 | vic2.sprites[5].doubleHeight << 5
-			     | vic2.sprites[6].doubleHeight << 6 | vic2.sprites[7].doubleHeight << 7;
+			return this.sprites[0].doubleHeight << 0 | this.sprites[1].doubleHeight << 1
+			     | this.sprites[2].doubleHeight << 2 | this.sprites[3].doubleHeight << 3
+			     | this.sprites[4].doubleHeight << 4 | this.sprites[5].doubleHeight << 5
+			     | this.sprites[6].doubleHeight << 6 | this.sprites[7].doubleHeight << 7;
 
 		case 0x18:		// $d018: memory setup register
-			return vic2.memorySetupRegister.pointerToBitmapMemory >> 10
-			     | vic2.memorySetupRegister.pointerToScreenMemory >> 6
+			return this.memorySetupRegister.pointerToBitmapMemory >> 10
+			     | this.memorySetupRegister.pointerToScreenMemory >> 6
 			     | 1;	// unused bits read back as 1
 
 		case 0x19:		// $d019: interrupt register
-			return (   (vic2.interruptRegister.events.rasterLineOccurred && vic2.interruptRegister.mask.rasterLineEnabled)
-			        || (vic2.interruptRegister.events.spriteBackgroundCollisionOccurred && vic2.interruptRegister.mask.spriteBackgroundCollisionEnabled)
-			        || (vic2.interruptRegister.events.spriteSpriteCollisionOccurred && vic2.interruptRegister.mask.spriteSpriteCollisionEnabled)) ? 0x80 : 0x00
-			     | vic2.interruptRegister.events.spriteSpriteCollisionOccurred << 2
-			     | vic2.interruptRegister.events.spriteBackgroundCollisionOccurred << 1
-			     | vic2.interruptRegister.events.rasterLineOccurred << 0;
+			return (   (this.interruptRegister.events.rasterLineOccurred && this.interruptRegister.mask.rasterLineEnabled)
+			        || (this.interruptRegister.events.spriteBackgroundCollisionOccurred && this.interruptRegister.mask.spriteBackgroundCollisionEnabled)
+			        || (this.interruptRegister.events.spriteSpriteCollisionOccurred && this.interruptRegister.mask.spriteSpriteCollisionEnabled)) ? 0x80 : 0x00
+			     | this.interruptRegister.events.spriteSpriteCollisionOccurred << 2
+			     | this.interruptRegister.events.spriteBackgroundCollisionOccurred << 1
+			     | this.interruptRegister.events.rasterLineOccurred << 0;
 
 		case 0x1a:		// $d01a: interrupt enabled
-			return (vic2.interruptRegister.mask.rasterLineEnabled << 0)
-			     | (vic2.interruptRegister.mask.spriteBackgroundCollisionEnabled << 1)
-			     | (vic2.interruptRegister.mask.spriteSpriteCollisionEnabled << 2);
+			return (this.interruptRegister.mask.rasterLineEnabled << 0)
+			     | (this.interruptRegister.mask.spriteBackgroundCollisionEnabled << 1)
+			     | (this.interruptRegister.mask.spriteSpriteCollisionEnabled << 2);
 
 		case 0x1b:		// $d01b: sprite priority
-			return vic2.sprites[0].isBehindContents << 0 | vic2.sprites[1].isBehindContents << 1
-			     | vic2.sprites[2].isBehindContents << 2 | vic2.sprites[3].isBehindContents << 3
-			     | vic2.sprites[4].isBehindContents << 4 | vic2.sprites[5].isBehindContents << 5
-			     | vic2.sprites[6].isBehindContents << 6 | vic2.sprites[7].isBehindContents << 7;
+			return this.sprites[0].isBehindContents << 0 | this.sprites[1].isBehindContents << 1
+			     | this.sprites[2].isBehindContents << 2 | this.sprites[3].isBehindContents << 3
+			     | this.sprites[4].isBehindContents << 4 | this.sprites[5].isBehindContents << 5
+			     | this.sprites[6].isBehindContents << 6 | this.sprites[7].isBehindContents << 7;
 
 		case 0x1c:		// $d01c: sprite multicolor
-			return vic2.sprites[0].multicolor << 0 | vic2.sprites[1].multicolor << 1
-			     | vic2.sprites[2].multicolor << 2 | vic2.sprites[3].multicolor << 3
-			     | vic2.sprites[4].multicolor << 4 | vic2.sprites[5].multicolor << 5
-			     | vic2.sprites[6].multicolor << 6 | vic2.sprites[7].multicolor << 7;
+			return this.sprites[0].multicolor << 0 | this.sprites[1].multicolor << 1
+			     | this.sprites[2].multicolor << 2 | this.sprites[3].multicolor << 3
+			     | this.sprites[4].multicolor << 4 | this.sprites[5].multicolor << 5
+			     | this.sprites[6].multicolor << 6 | this.sprites[7].multicolor << 7;
 
 		case 0x1d:		// $d01d: sprite double width
-			return vic2.sprites[0].doubleWidth << 0 | vic2.sprites[1].doubleWidth << 1
-			     | vic2.sprites[2].doubleWidth << 2 | vic2.sprites[3].doubleWidth << 3
-			     | vic2.sprites[4].doubleWidth << 4 | vic2.sprites[5].doubleWidth << 5
-			     | vic2.sprites[6].doubleWidth << 6 | vic2.sprites[7].doubleWidth << 7;
+			return this.sprites[0].doubleWidth << 0 | this.sprites[1].doubleWidth << 1
+			     | this.sprites[2].doubleWidth << 2 | this.sprites[3].doubleWidth << 3
+			     | this.sprites[4].doubleWidth << 4 | this.sprites[5].doubleWidth << 5
+			     | this.sprites[6].doubleWidth << 6 | this.sprites[7].doubleWidth << 7;
 
 		case 0x1e:		// $d01e: get and clear sprite-sprite collisions
 			var result = 0;
 			for (var i = 0; i < 8; i++) {
-				if (vic2.sprites[i].collisionSprite) {
+				if (this.sprites[i].collisionSprite) {
 					result |= 1 << i;
-					vic2.sprites[i].collisionSprite = false;
+					this.sprites[i].collisionSprite = false;
 				}
 			}
 			return result;
@@ -471,9 +471,9 @@ vic2.onReadByte = function(address) {
 		case 0x1f:		// $d01f: get and clear sprite-background collisions
 			var result = 0;
 			for (var i = 0; i < 8; i++) {
-				if (vic2.sprites[i].collisionBackground) {
+				if (this.sprites[i].collisionBackground) {
 					result |= 1 << i;
-					vic2.sprites[i].collisionBackground = false;
+					this.sprites[i].collisionBackground = false;
 				}
 			}
 			return result;
@@ -528,11 +528,11 @@ vic2.onReadByte = function(address) {
 vic2.renderStandardCharacterMode = function(x, y) {
 	var col = x >> 3;
 	var rowPos = (y >> 3) * 40;
-	var content = vic2.memory.readByte(vic2.memorySetupRegister.pointerToScreenMemory + rowPos + col);
-	var charMemPos = vic2.memorySetupRegister.pointerToCharMemory + (content * 8);
-	var color = vic2.memory.readByte(0xd800 + rowPos + col);
-	if (vic2.memory.readByte(charMemPos + y % 8) & (0x80 >> x % 8)) {
-		return { rendered: true, color: color, renderedBackgroundColor: color == vic2.backgroundColor };
+	var content = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col);
+	var charMemPos = this.memorySetupRegister.pointerToCharMemory + (content * 8);
+	var color = this.memory.readByte(0xd800 + rowPos + col);
+	if (this.memory.readByte(charMemPos + y % 8) & (0x80 >> x % 8)) {
+		return { rendered: true, color: color, renderedBackgroundColor: color == this.backgroundColor };
 	}
 	return { rendered: false, renderedBackgroundColor: false };
 };
@@ -540,51 +540,51 @@ vic2.renderStandardCharacterMode = function(x, y) {
 vic2.renderMultiColorCharacterMode = function(x, y) {
 	var col = x >> 3;
 	var rowPos = (y >> 3) * 40;
-	var color = vic2.memory.readByte(0xd800 + (rowPos + col));
+	var color = this.memory.readByte(0xd800 + (rowPos + col));
 	if (color & 0x08) {
-		var textMemPos = vic2.memorySetupRegister.pointerToScreenMemory + (rowPos + col);
-		var charMemPos = vic2.memorySetupRegister.pointerToCharMemory + (vic2.memory.readByte(textMemPos) * 8);
+		var textMemPos = this.memorySetupRegister.pointerToScreenMemory + (rowPos + col);
+		var charMemPos = this.memorySetupRegister.pointerToCharMemory + (this.memory.readByte(textMemPos) * 8);
 		var xOffset = x % 8;
 		xOffset -= xOffset % 2;
-		var colorBits = (vic2.memory.readByte(charMemPos + y % 8) & (0xc0 >> xOffset)) >> 6 - xOffset;
-		color = [vic2.backgroundColor, vic2.extraBackgroundColor1, vic2.extraBackgroundColor2, color & 0x07][colorBits];
+		var colorBits = (this.memory.readByte(charMemPos + y % 8) & (0xc0 >> xOffset)) >> 6 - xOffset;
+		color = [this.backgroundColor, this.extraBackgroundColor1, this.extraBackgroundColor2, color & 0x07][colorBits];
 		return { rendered: true, color: color, renderedBackgroundColor: colorBits < 2 };
 	}
 
 	// if bit 3 of the color is low, this char should be rendered in standard mode
-	return vic2.renderStandardCharacterMode(x, y);
+	return this.renderStandardCharacterMode(x, y);
 }
 
 vic2.renderStandardBitmapMode = function(x, y) {
 	var col = x >> 3, rowPos = (y >> 3) * 40;
-	if ((vic2.memory.readByte(vic2.memorySetupRegister.pointerToBitmapMemory + (rowPos + col) * 8 + y % 8) & (0x80 >> x % 8)) > 0) {
-		var color = vic2.memory.readByte(vic2.memorySetupRegister.pointerToScreenMemory + rowPos + col) >> 4;
-		return { rendered: true, color: color, renderedBackgroundColor: color == vic2.backgroundColor };
+	if ((this.memory.readByte(this.memorySetupRegister.pointerToBitmapMemory + (rowPos + col) * 8 + y % 8) & (0x80 >> x % 8)) > 0) {
+		var color = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col) >> 4;
+		return { rendered: true, color: color, renderedBackgroundColor: color == this.backgroundColor };
 	}
 	return { rendered: false, renderedBackgroundColor: false };
 };
 
 vic2.renderMultiColorBitmapMode = function(x, y) {
 	var col = x >> 3, rowPos = (y >> 3) * 40, color;
-	switch ((vic2.memory.readByte(vic2.memorySetupRegister.pointerToBitmapMemory + (rowPos + col) * 8 + y % 8) >> (7 - x & 6)) & 3) {
+	switch ((this.memory.readByte(this.memorySetupRegister.pointerToBitmapMemory + (rowPos + col) * 8 + y % 8) >> (7 - x & 6)) & 3) {
 		case 0:
 			return { rendered: false, renderedBackgroundColor: false };
 		case 1:
-			color = vic2.memory.readByte(vic2.memorySetupRegister.pointerToScreenMemory + rowPos + col) >> 4;
+			color = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col) >> 4;
 			break;
 		case 2:
-			color = vic2.memory.readByte(vic2.memorySetupRegister.pointerToScreenMemory + rowPos + col) & 15;
+			color = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col) & 15;
 			break;
 		case 3:
-			color = vic2.memory.readByte(0xd800 + rowPos + col);
+			color = this.memory.readByte(0xd800 + rowPos + col);
 			break;
 	}
-	return { rendered: true, color: color, renderedBackgroundColor: color == vic2.backgroundColor };
+	return { rendered: true, color: color, renderedBackgroundColor: color == this.backgroundColor };
 }
 
 vic2.renderSprites = function(rx, ry, renderedBackgroundColorUnder) {
 
-	var baseAddressSpriteVectors = vic2.memorySetupRegister.pointerToScreenMemory + 0x3f8;
+	var baseAddressSpriteVectors = this.memorySetupRegister.pointerToScreenMemory + 0x3f8;
 	var firstCollider = null;
 
 	for (var z = 7; z >= 0; z--) {
@@ -608,7 +608,7 @@ vic2.renderSprites = function(rx, ry, renderedBackgroundColorUnder) {
 
 				if (sprite.multicolor) {
 					colorBits = (spriteDataByte >> (7 - dx & 6)) & 3;
-					color = [0x00, vic2.extraSpriteColor1, sprite.color, vic2.extraSpriteColor2][colorBits];
+					color = [0x00, this.extraSpriteColor1, sprite.color, this.extraSpriteColor2][colorBits];
 				} else if (colorBits = (spriteDataByte >> (7 - dx & 7)) & 1) {
 					color = sprite.color;
 				}
@@ -720,7 +720,7 @@ vic2.process = function(line, cycle) {
 	}
 
 	if (cycle == 1) {
-		if (vic2.interruptRegister.mask.rasterLineEnabled && line == this.screenControlRegister.interruptRasterLine) {
+		if (this.interruptRegister.mask.rasterLineEnabled && line == this.screenControlRegister.interruptRasterLine) {
 			this.interruptRegister.events.rasterLineOccurred = true;
 			mos6510.irq = true;
 		}
