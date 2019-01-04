@@ -91,37 +91,33 @@ main.start = function () {
 	cpuMemoryManager.init();
 	mos6510.init(cpuMemoryManager);
 	vic2.init(vicMemoryManager);
-    sid.init()
+	sid.init()
 
-	var badLine = false;
+	var stunCPU = false;
 	var cpuCycles = 0;
-	var frameInterlaceToggle = 0;
-    var cycles = 19656;
+	var cycles = 19656;
 
 	var doCycles = function () {
 
-		frameInterlaceToggle++;
-		if (frameInterlaceToggle > 0)
-			frameInterlaceToggle = 0;
+		for (var line = 0; line < 312; ++ line) {
+			for (cycle = 1; cycle <= 63; ++cycle) {	// cycle within raster line start at 1 to match most documentation
 
-		/* (504 * 312) / 8 = 19656 cycles to draw entire screen */
-		for (var i = 0; i < cycles; i++) {
+				// Low phase: VIC
+				stunCPU = vic2.process(line, cycle);
 
-			if (!badLine) {
-				// High phase
-				if (cpuCycles == 0) {
-					cpuCycles = mos6510.process();
+				// High phase: CPU
+				if (!stunCPU) {
+					if (cpuCycles == 0) {
+						cpuCycles = mos6510.process();
+						if (cpuCycles == 0) {
+							console.log('pc: ' + mos6510.register.pc.toString(16));
+							main.stop = true;
+						}
+					}
+
+					cpuCycles--;
 				}
-
-				if (cpuCycles == 0) {
-					console.log('pc: ' + mos6510.register.pc.toString(16));
-					main.stop = true;
-				}
-
-                cpuCycles--;
 			}
-			// Low phase
-			badLine = vic2.process(i, frameInterlaceToggle);
 
 			if (main.stop) {
 				break;

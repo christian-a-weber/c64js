@@ -646,18 +646,16 @@ vic2.renderSprites = function(rx, ry, renderedBackgroundColorUnder) {
 	}
 }
 
-// frameCycle = current clock cycle 0..19655: 312 lines of 63 cycles
-vic2.process = function(frameCycle, frameInterlaceToggle) {
-
-	var cycle = frameCycle % 63;				// cycle within raster line: 0..62
-	var line = Math.floor(frameCycle / 63);		// raster line 0..311
+// process one vic clock cycle. Return true if CPU was stunned
+// line: 0..311, cycle: 1..63
+vic2.process = function(line, cycle) {
 
 	var badLine = (line >= 48 && line < 248 && ((line & 7) == this.screenControlRegister.yScroll));
 
 	this.screenControlRegister.currentRasterLine = line;
 
 	// at start of each raster line: turn vBorder flag on/off depending on line and screenHeight
-	if (cycle == 0) {
+	if (cycle == 1) {
 		if (line == (this.screenControlRegister.screenHeight ? 51 : 55) && this.screenControlRegister.screenOn)	// top (3)
 			this.screenControlRegister.vBorder = false;
 		else if (line == (this.screenControlRegister.screenHeight ? 251 : 247))	// bottom (2)
@@ -665,10 +663,10 @@ vic2.process = function(frameCycle, frameInterlaceToggle) {
 	}
 
 	// canvas size is 384 x 272 pixels: line = [14..285] and x = [112..495]
-	if (cycle >= 15 && cycle < 63 && line >= 14 && line < 286) {	// inside canvas? (rest is blanking)
+	if (cycle >= 14 && cycle < 62 && line >= 14 && line < 286) {	// inside canvas? (rest is blanking)
 		for (var x = cycle * 8; x < cycle * 8 + 8; ++x) {			// 1 cycle = 8 pixels
 
-			var fromBorderX = x - 120;			// coordinates relative to border start (=sprite coordinates)
+			var fromBorderX = x - 112;			// coordinates relative to border start (=sprite coordinates)
 			var fromBorderY = line - 14;
 
 
@@ -721,14 +719,14 @@ vic2.process = function(frameCycle, frameInterlaceToggle) {
 		}
 	}
 
-	if (cycle == 0) {
+	if (cycle == 1) {
 		if (vic2.interruptRegister.mask.rasterLineEnabled && line == this.screenControlRegister.interruptRasterLine) {
 			this.interruptRegister.events.rasterLineOccurred = true;
 			mos6510.irq = true;
 		}
 	}
 
-	if (line == 311 && cycle == 62) {	// end of frame
+	if (line == 311 && cycle == 63) {	// end of frame
 		this.screenCanvasContext.putImageData(this.screenCanvasImageData, 0, 0);
 	}
 
