@@ -3,6 +3,10 @@ var mos6510 = mos6510 || {};
 
 mos6510.memory = null;
 
+// setting these flags triggers an interrupt
+mos6510.irq = false;
+mos6510.nmi = false;
+
 mos6510.register = {
 	a: 0x00,
 	x: 0x00,
@@ -52,47 +56,43 @@ mos6510.init = function (memoryModule) {
 	this.instructions.rst();
 };
 
-mos6510.getNextInstruction = function () {
-	return this.memory.readByte(this.register.pc++);
-};
-
 mos6510.addressModeOperations = {
 	Immediate: function () {
 		return {
-			valueAddr: mos6510.getNextInstruction(),
+			valueAddr: mos6510.memory.readByte(mos6510.register.pc++),
 			pageBoundaryCrossed: false
 		};
 	},
 	ZeroPage: function (isValue) {
-		var addr = mos6510.getNextInstruction();
+		var addr = mos6510.memory.readByte(mos6510.register.pc++);
 		return {
 			valueAddr: isValue ? mos6510.memory.readByte(addr) : addr,
 			pageBoundaryCrossed: false
 		};
 	},
 	ZeroPageX: function (isValue) {
-		var addr = (mos6510.getNextInstruction() + mos6510.register.x) & 0xff;
+		var addr = (mos6510.memory.readByte(mos6510.register.pc++) + mos6510.register.x) & 0xff;
 		return {
 			valueAddr: isValue ? mos6510.memory.readByte(addr) : addr,
 			pageBoundaryCrossed: false
 		};
 	},
 	ZeroPageY: function (isValue) {
-		var addr = (mos6510.getNextInstruction() + mos6510.register.y) & 0xff;
+		var addr = (mos6510.memory.readByte(mos6510.register.pc++) + mos6510.register.y) & 0xff;
 		return {
 			valueAddr: isValue ? mos6510.memory.readByte(addr) : addr,
 			pageBoundaryCrossed: false
 		};
 	},
 	Absolute: function (isValue) {
-		var addr = mos6510.getNextInstruction() | (mos6510.getNextInstruction() << 8);
+		var addr = mos6510.memory.readByte(mos6510.register.pc++) | (mos6510.memory.readByte(mos6510.register.pc++) << 8);
 		return {
 			valueAddr: isValue ? mos6510.memory.readByte(addr) : addr,
 			pageBoundaryCrossed: false
 		};
 	},
 	AbsoluteX: function (isValue) {
-		var memoryValue = mos6510.getNextInstruction() | (mos6510.getNextInstruction() << 8);
+		var memoryValue = mos6510.memory.readByte(mos6510.register.pc++) | (mos6510.memory.readByte(mos6510.register.pc++) << 8);
 		var addr = (memoryValue + mos6510.register.x) & 0xffff;
 		return {
 			valueAddr: isValue ? mos6510.memory.readByte(addr) : addr,
@@ -100,7 +100,7 @@ mos6510.addressModeOperations = {
 		};
 	},
 	AbsoluteY: function (isValue) {
-		var memoryValue = mos6510.getNextInstruction() | (mos6510.getNextInstruction() << 8);
+		var memoryValue = mos6510.memory.readByte(mos6510.register.pc++) | (mos6510.memory.readByte(mos6510.register.pc++) << 8);
 		var addr = (memoryValue + mos6510.register.y) & 0xffff;
 		return {
 			valueAddr: isValue ? mos6510.memory.readByte(addr) : addr,
@@ -108,7 +108,7 @@ mos6510.addressModeOperations = {
 		};
 	},
 	IndirectX: function (isValue) {
-		var argx = (mos6510.getNextInstruction() + mos6510.register.x) & 0xff;
+		var argx = (mos6510.memory.readByte(mos6510.register.pc++) + mos6510.register.x) & 0xff;
 		var addr = mos6510.memory.readByte(argx) | (mos6510.memory.readByte(argx + 1 & 0xff) << 8);
 		return {
 			valueAddr: isValue ? mos6510.memory.readByte(addr) : addr,
@@ -116,7 +116,7 @@ mos6510.addressModeOperations = {
 		}
 	},
 	IndirectY: function (isValue) {
-		var arg = mos6510.getNextInstruction();
+		var arg = mos6510.memory.readByte(mos6510.register.pc++);
 		var lowBaseAddr = mos6510.memory.readByte(arg);
 		var highBaseAddr = (mos6510.memory.readByte((arg + 1) & 0xff) << 8);
 		var baseAddr = lowBaseAddr | highBaseAddr;
@@ -127,7 +127,7 @@ mos6510.addressModeOperations = {
 		}
 	},
 	Relative: function () {
-		var relAddr = mos6510.getNextInstruction();
+		var relAddr = mos6510.memory.readByte(mos6510.register.pc++);
 		if ((relAddr & 0x80) > 0)
 			relAddr -= 0x100;
 		return {
@@ -1688,10 +1688,6 @@ mos6510.instructionMap = {
 	}
 };
 	
-// interrupts has occured
-mos6510.irq = false;
-mos6510.nmi = false;
-	
 mos6510.checkBreakPoints = function () {
 
 	// LOAD hook
@@ -1711,7 +1707,7 @@ mos6510.process = function () {
 		this.irq = false;
 		if (this.register.status.interrupt == false) {
 			this.instructions.irq();
-			return 2;
+			return 7;
 		}
 	}
 
@@ -1719,18 +1715,18 @@ mos6510.process = function () {
 		this.nmi = false;
 		if (this.register.status.interrupt == false) {
 			this.instructions.nmi();
-			return 2;
+			return 7;
 		}
 	}
 
 	this.checkBreakPoints();
 
-	var instructionToExecute = this.getNextInstruction();
+	var instructionToExecute = this.memory.readByte(this.register.pc++);
 
 	if (this.instructionMap[instructionToExecute])
 		return this.instructionMap[instructionToExecute]();
 	else {
-		console.log('ERROR: Could not execute opcode $' + instructionToExecute.toString(16) + ' @ $' + mos6510.register.pc.toString(16));
+		console.log('ERROR: Could not execute opcode $' + instructionToExecute.toString(16) + ' @ $' + this.register.pc.toString(16));
 		return 0;
 	}
 };
