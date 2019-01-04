@@ -33,7 +33,7 @@ sid.stop = function () {
 		this.sidPlayer.stop();
 }
 
-sid.poke = function(address, data) {
+sid.onWriteByte = function(address, data) {
 	if (this.sidPlayer) {
 		sid.play();
 		if (address <= 0xd418) {
@@ -42,8 +42,12 @@ sid.poke = function(address, data) {
 			this.sidPlayer.synth.pokeDigi(address, data);
 		}
 	}
-};
+}
 
+sid.onReadByte = function(address) {
+	console.log("SID: read $" + address.toString(16));
+	return 0;	// FIXME implement
+}
 
 // constructor
 jsSID.SIDPlayer = function(opts) {

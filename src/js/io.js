@@ -1,6 +1,8 @@
 var memoryManager = memoryManager || {};
 memoryManager.io = {};
 
+memoryManager.io.colorRam = [];
+
 memoryManager.io.onWriteByte = function(address, data) {
 	
 	/* VIC-II */
@@ -10,13 +12,12 @@ memoryManager.io.onWriteByte = function(address, data) {
 	
 	/* SID */
 	if (address >= 0xd400 && address <= 0xd7ff) {
-        sid.play();
-        sid.poke(address & 0x1f, data);
+		sid.onWriteByte(address, data);
 	}
 	
 	/* Color ram */
 	if (address >= 0xd800 && address <= 0xdbff) {
-		memoryManager.ram.onWriteByte(address, data);
+		memoryManager.io.colorRam[address - 0xd800] = data & 0x0f;
 	}
 	
 	/* CIA 1 */
@@ -40,12 +41,12 @@ memoryManager.io.onReadByte = function(address) {
 	
 	/* SID */
 	if (address >= 0xd400 && address <= 0xd7ff) {
-		
+		return sid.onReadByte(address);
 	}
 	
 	/* Color ram */
 	if (address >= 0xd800 && address <= 0xdbff) {
-		return memoryManager.ram.onReadByte(address);
+		return memoryManager.io.colorRam[address - 0xd800];
 	}
 	
 	/* CIA 1 */
