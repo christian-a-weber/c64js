@@ -28,7 +28,7 @@ memoryManager.cia2.setVicBank = function(data) {
 };
 
 memoryManager.cia2.onWriteByte = function(address, data) {
-	switch(address & 0x00ff) {
+	switch(address & 0x000f) {	// registers are repeated every 16 bytes
 		case 0x00:
 			this.setVicBank(data);
 			break;
@@ -36,13 +36,13 @@ memoryManager.cia2.onWriteByte = function(address, data) {
 			memoryManager.cia2.vicBankMask = data;
 			break;
 		default:
-			console.log('unhandled write to cia2: ' + data.toString(2) + ' @ ' + address.toString(16));
+			console.log('unhandled write ' + data.toString(16) + ' to cia2 ' + address.toString(16));
 			break;
 	}
 };
 
 memoryManager.cia2.onReadByte = function(address) {
-	switch(address & 0x00ff) {
+	switch(address & 0x000f) {
 		case 0x00:
 			return memoryManager.cia2.vicBankRawByte;
 		case 0x02:
