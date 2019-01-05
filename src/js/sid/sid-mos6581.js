@@ -34,6 +34,7 @@ sid.stop = function () {
 }
 
 sid.onWriteByte = function(address, data) {
+	address = 0xd400 + (address & 0x1f);	// registers are repeated every 32 bytes
 	if (this.sidPlayer) {
 		sid.play();
 		if (address <= 0xd418) {
@@ -45,8 +46,12 @@ sid.onWriteByte = function(address, data) {
 }
 
 sid.onReadByte = function(address) {
-	console.log("SID: read $" + address.toString(16));
-	return 0;	// FIXME implement
+	address = 0xd400 + (address & 0x1f);	// registers are repeated every 32 bytes
+	if (address == 0xd41b || address == 0xd41c) {	// FIXME
+		return (Math.random() * 0xff) | 0;	// many programs use the sid as a random number generator
+	}
+	console.log("SID: unsupported read from " + address.toString(16));
+	return 0xff;	// FIXME implement
 }
 
 // constructor
