@@ -49,12 +49,10 @@ memoryManager.cia1.onWriteByte = function(address, data) {
 			break;
 		// direction of data port A (0 = read only, 1 = read and write)
 		case 0x02:
-			console.log('set cia1 dra to %' + data.toString(2));
 			memoryManager.cia1.directionOfPortA = data;
 			break;
 		// direction of data port B (0 = read only, 1 = read and write)
 		case 0x03:
-			console.log('set cia1 drb to %' + data.toString(2));
 			memoryManager.cia1.directionOfPortB = data;
 			break;
 		case 0x04:
