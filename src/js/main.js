@@ -4,7 +4,11 @@ c64js - A commodore 64 emulator
 Email: mikael [dot] borgbrant [at] gmail [dot] com
 */
 
-var main = main || {};
+var main = main || {
+	canvasContext:	null,	// canvas context for rendering
+	imageData:	null,	// raw pixel buffer r/g/b/a
+	stop:		false,	// cpu running?
+};
 
 window.requestAnimFrame = (function () {
 	return window.requestAnimationFrame ||
@@ -80,9 +84,10 @@ main.exitFullscreen = function () {
 	}
 }
 
-main.stop = false;
+main.start = function (canvas) {
 
-main.start = function () {
+	this.canvasContext = canvas.getContext('2d');
+	this.imageData = this.canvasContext.createImageData(384, 272);
 
 	memoryManager.kernel = new Rom(0xe000, romDump.kernel);
 	memoryManager.basic = new Rom(0xa000, romDump.basic);
@@ -90,24 +95,27 @@ main.start = function () {
 
 	cpuMemoryManager.init();
 	mos6510.init(cpuMemoryManager);
-	vic2.init(vicMemoryManager);
-	sid.init()
+	vic2.init(vicMemoryManager, this.imageData.data);
+	sid.init();
 
-	var stunCPU = false;
 	var cpuCycles = 0;
 	var cycles = 19656;
 
 	var doCycles = function () {
 
+		if (!main.stop) {
+			window.requestAnimFrame(doCycles);
+		}
+
 		for (var line = 0; line < 312; ++ line) {
 			for (cycle = 1; cycle <= 63; ++cycle) {	// cycle within raster line start at 1 to match most documentation
 
 				// Low phase: VIC
-				stunCPU = vic2.process(line, cycle);
+				vic2.process(line, cycle);
 
 				// High phase: CPU
-				if (!stunCPU) {
-					if (cpuCycles == 0) {
+				if (vic2.cycleTypeCPU == 'x' || (vic2.cycleTypeCPU == 'X' && cpuCycles > 0)) {
+					if (cpuCycles <= 0) {
 						cpuCycles = mos6510.process();
 						if (cpuCycles == 0) {
 							console.log('pc: ' + mos6510.register.pc.toString(16));
@@ -115,7 +123,7 @@ main.start = function () {
 						}
 					}
 
-					cpuCycles--;
+					cpuCycles--;		// FIXME implement stun-on-read during an instruction
 				}
 			}
 
@@ -128,11 +136,7 @@ main.start = function () {
 		memoryManager.cia1.process(cycles);
 		memoryManager.cia2.process(cycles);
 
-		if (!main.stop) {
-			window.requestAnimFrame(doCycles);
-		} else {
-			console.log('stopped!');
-		}
+		main.canvasContext.putImageData(main.imageData, 0, 0);
 	}
 
 	doCycles();

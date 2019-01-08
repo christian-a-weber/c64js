@@ -72,9 +72,8 @@
 		<input type="file" id="fileElement" name="romFile" />
 		<script>
 			window.onload = function() {
-				vic2.setScreenCanvas(document.getElementById('screenCanvas'));
+				main.start(document.getElementById('screenCanvas'));
 				fileLoad.setDropArea(document.getElementById('screenCanvas'));
-				main.start();
 			}
 		</script>
 		<script>

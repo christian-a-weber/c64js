@@ -1,37 +1,40 @@
-// TODO: side border timing, idle accesses 3fff/39ff
+// TODO: proper cycle timing to make side border sprites work
 
 var vic2 = vic2 || {};
 
-vic2.screenCanvas = null;
-vic2.screenCanvasContext = null;
-vic2.screenCanvasImageData = null;
+vic2.imageData = null;			// byte array r/g/b/a of vic screen
+
+vic2.lineTimings = [
+	// line timing table, used to calculate vic2.cycleTypeVIC and vic2.cycleTypeCPU
+	"3xix4xix5xix6xix7xixrxrxrxrxrxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxgxixix0xix1xix2xix",	// good line, no sprites
+	"3xix4xix5xix6xix7xixrxrXrXrXrcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgxixix0xix1xix2xix",	// bad line, no sprites
+];
+
+vic2.colorPalette = [0x000000, 0xffffff, 0x68372b, 0x70a4b2, 0x6f3d86, 0x588d43, 0x352879, 0xb8c76f, 0x6f4f25, 0x433900, 0x9a6759, 0x444444, 0x6c6c6c, 0x9ad284, 0x6c5eB5, 0x959595];
 
 vic2.sprites = [
-	{ id: 0, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
-	{ id: 1, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
-	{ id: 2, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
-	{ id: 3, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
-	{ id: 4, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
-	{ id: 5, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
-	{ id: 6, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
-	{ id: 7, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false,  collisionBackground: false },
+	// dma: dma on/off. mcbase: mob data counter. base: 6 bit counter with reset. mc: 6 bit mob counter, can be loaded from mcbase. yex: y-expsansion flip flop.
+	{ id: 0, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
+	{ id: 1, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
+	{ id: 2, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
+	{ id: 3, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
+	{ id: 4, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
+	{ id: 5, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
+	{ id: 6, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
+	{ id: 7, x: 0, y: 0, enabled: false, doubleHeight: false, doubleWidth: false, isBehindContents: false, multicolor: false, color: 0, collisionSprite: false, collisionBackground: false, pointer: 0, dma: false, mcbase: 0, mc: 0, yex: false, data: [0, 0, 0] },
 ];
 
 vic2.screenControlRegister = {
-	yScroll: 0x03,				// vertical scroll (0-7)
-	screenHeight: true,			// false = 24 rows, 						true = 25 rows
-	screenOn: true,				// false = screen is covered by border, 	true = Screen on, normal screen contents are visible
-	renderMode: false,			// false = Text mode, 						true = Bitmap mode
-	extendedBackground: false,	// false = Extended background mode off, 	true = Extended background mode on
+	xScroll: 0,					// horizontal scroll (0-7)
+	yScroll: 0,					// vertical scroll (0-7)
+	screenOn: true,				// false = screen is covered by border	 	true = Screen on, normal screen contents are visible
+	screenWidth: true,			// false = 38 columns						true = 40 columns
+	screenHeight: true,			// false = 24 rows	 						true = 25 rows
+	bitmapMode: false,			// false = Text mode 						true = Bitmap mode (BMM)
+	multiColor: false,			// false = multi color mode off				true = multi color mode (MCM) on
+	extendedBackground: false,	// false = Extended background mode off 	true = Extended background mode (ECM) on
 	currentRasterLine: 0,
 	interruptRasterLine: 0,
-	xScroll : 0,				// horizontal scroll (0-7)
-	screenWidth: true,			// false = 38 columns						true = 40 columns
-	multiColor: false,
-
-	// internal flipflops
-	mainBorder: false,			// main border flag: if set, border color is shown
-	vBorder: false,				// vertical border flag: if set, mainBorder can't be reset
 };
 
 vic2.memorySetupRegister = {
@@ -41,7 +44,7 @@ vic2.memorySetupRegister = {
 };
 
 vic2.interruptRegister = {
-	// Skipping lightpen for interrupts
+	// TODO lightpen interrupts
 	events: {
 		rasterLineOccurred: false,
 		spriteBackgroundCollisionOccurred: false,
@@ -65,29 +68,33 @@ vic2.extraSpriteColor2 = 0x00;
 
 vic2.memory = null;
 
+// internal vic state
+vic2.mainBorder = false;		// main border flag: if set, border color is shown
+vic2.vBorder = false;			// vertical border flag: if set, mainBorder can't be reset
+vic2.sideBorderHack = 0;		// we're still not 100% cycle exact, so we cheat :)
+vic2.displayState = false;		// true: display state (c and g data are fetched), false: idle (g=3fff/39ff fetched, c=0)
+vic2.pointerToIdleMemory = 0;	// address for idle bitmap accesses (used for top / bottom border effects)
+vic2.cycleTypeVIC = 'i';		// i=Idle, c=cData, g=gData, 0-9=sprite pointers, s=sprite data, r=refresh cycle
+vic2.cycleTypeCPU = 'x';		// p=processor running, P=processor read only, c=stunned by cData, s=stunnd by sprite data
+vic2.badLine = false;			// true if the cpu will be stunned because of c data accesses in this line
+vic2.xPos = 0;					// current x position in pixels relative to canvas (same as sprite coordinates)
+vic2.yPos = 0;					// current y position in pixels relative to canvas (same as sprite coordinates)
+vic2.vcBase = 0;				// video counter base (10 bit register)
+vic2.vc = 0;					// video counter (10 bit counter)
+vic2.vmli = 0;					// index into videoMatrixLine / colorMatrixLine (6 bit counter, counts 0..39)
+vic2.rc = 0;					// row counter (3 bit), counts row since last bad line
+vic2.videoMatrixLine = [];		// 40 bytes, read by cData dma during bad lines
+vic2.colorMatrixLine = [];		// 40 bytes, read by cData dma during bad lines
+vic2.cData = 0;					// current c data byte (video matrix)
+vic2.gData = 0;					// current g data byte (bitmap or char)
+vic2.colorData = 0;				// current color ram data nybble
+vic2.pixelBit = 0;				// bit position of current pixel [7..0]
+vic2.pixelColor = 0;			// color of current pixel [0..15]
+vic2.pixelIsBG = false;			// true if the current pixel is a background pixel (0 in hires or 00/01 in multicolor mode)
 
-vic2.init = function(memoryManager) {
+vic2.init = function(memoryManager, imageData) {
 	this.memory = memoryManager;
-}
-
-vic2.setScreenCanvas = function(canvasObject) {
-	this.screenCanvas = canvasObject;
-	this.screenCanvasContext = this.screenCanvas.getContext('2d');
-	this.screenCanvasImageData = this.screenCanvasContext.createImageData(this.screenCanvas.width, this.screenCanvas.height);
-};
-
-vic2.putPixel = function(x, y, c) {
-	if (x >= 0 && x < 384 && y >= 0 && y < 272) {
-		var position = (y * 384 + x) * 4;
-		var colorPalette = [ 0x000000, 0xffffff, 0x68372b, 0x70a4b2, 0x6f3d86, 0x588d43, 0x352879, 0xb8c76f,
-		                     0x6f4f25, 0x433900, 0x9a6759, 0x444444, 0x6c6c6c, 0x9ad284, 0x6c5eB5, 0x959595 ];
-		var color = colorPalette[c & 0x0f];
-
-		this.screenCanvasImageData.data[position + 0] = (color & 0xff0000) >> 16;	// red
-		this.screenCanvasImageData.data[position + 1] = (color & 0x00ff00) >> 8;	// green
-		this.screenCanvasImageData.data[position + 2] = (color & 0x0000ff);			// blue
-		this.screenCanvasImageData.data[position + 3] = 0xff;						// alpha
-	}
+	this.imageData = imageData;
 }
 
 vic2.onWriteByte = function(address, data) {
@@ -172,12 +179,14 @@ vic2.onWriteByte = function(address, data) {
 			this.screenControlRegister.yScroll = data & 0x07;
 			this.screenControlRegister.screenHeight = (data & 0x08) > 0;
 			this.screenControlRegister.screenOn = (data & 0x10) > 0;
-			this.screenControlRegister.renderMode = (data & 0x20) > 0;
+			this.screenControlRegister.bitmapMode = (data & 0x20) > 0;
 			this.screenControlRegister.extendedBackground = (data & 0x40) > 0;
 			this.screenControlRegister.interruptRasterLine = (data & 0x80) << 1 | this.screenControlRegister.interruptRasterLine & 0xff;
+			this.pointerToIdleMemory = this.screenControlRegister.extendedBackground ? 0x39ff : 0x3fff;
+			this.setPixelRenderer();
 			break;
 
-		case 0x12:		// $d012: raster counter
+		case 0x12:		// $d012: interrupt raster line low bits
 			this.screenControlRegister.interruptRasterLine = this.screenControlRegister.interruptRasterLine & 0x100 | data & 0xff;
 			break;
 
@@ -202,6 +211,9 @@ vic2.onWriteByte = function(address, data) {
 			this.screenControlRegister.xScroll = data & 0x07;
 			this.screenControlRegister.screenWidth = (data & 0x08) > 0;
 			this.screenControlRegister.multiColor = (data & 0x10) > 0;
+			this.setPixelRenderer();
+			if (this.screenControlRegister.currentRasterLine >= 250)
+				this.sideBorderHack++;
 			break;
 
 		case 0x17:		// $d017: sprite double height
@@ -393,7 +405,7 @@ vic2.onReadByte = function(address) {
 
 		case 0x11:		// $d011: control register 1
 			return (this.screenControlRegister.yScroll & 0x07) | (this.screenControlRegister.screenHeight ? 0x08 : 0x00)
-			     | (this.screenControlRegister.screenOn ? 0x10 : 0x00) | (this.screenControlRegister.renderMode ? 0x20 : 0x00)
+			     | (this.screenControlRegister.screenOn ? 0x10 : 0x00) | (this.screenControlRegister.bitmapMode ? 0x20 : 0x00)
 			     | (this.screenControlRegister.extendedBackground ? 0x40 : 0x00) | (this.screenControlRegister.currentRasterLine & 0x100) >> 1;
 
 		case 0x12:		// $d012: raster counter low bits
@@ -423,7 +435,7 @@ vic2.onReadByte = function(address) {
 			     | this.sprites[6].doubleHeight << 6 | this.sprites[7].doubleHeight << 7;
 
 		case 0x18:		// $d018: memory setup register
-			return this.memorySetupRegister.pointerToBitmapMemory >> 10
+			return this.memorySetupRegister.pointerToCharMemory >> 10
 			     | this.memorySetupRegister.pointerToScreenMemory >> 6
 			     | 1;	// unused bits read back as 1
 
@@ -525,119 +537,138 @@ vic2.onReadByte = function(address) {
 	}
 }
 
-vic2.renderStandardCharacterMode = function(x, y) {
-	var col = x >> 3;
-	var rowPos = (y >> 3) * 40;
-	var content = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col);
-	var charMemPos = this.memorySetupRegister.pointerToCharMemory + (content * 8);
-	var color = this.memory.readByte(0xd800 + rowPos + col);
-	if (this.memory.readByte(charMemPos + y % 8) & (0x80 >> x % 8)) {
-		return { rendered: true, color: color, renderedBackgroundColor: color == this.backgroundColor };
-	}
-	return { rendered: false, renderedBackgroundColor: false };
-};
 
-vic2.renderMultiColorCharacterMode = function(x, y) {
-	var col = x >> 3;
-	var rowPos = (y >> 3) * 40;
-	var color = this.memory.readByte(0xd800 + (rowPos + col));
-	if (color & 0x08) {
-		var textMemPos = this.memorySetupRegister.pointerToScreenMemory + (rowPos + col);
-		var charMemPos = this.memorySetupRegister.pointerToCharMemory + (this.memory.readByte(textMemPos) * 8);
-		var xOffset = x % 8;
-		xOffset -= xOffset % 2;
-		var colorBits = (this.memory.readByte(charMemPos + y % 8) & (0xc0 >> xOffset)) >> 6 - xOffset;
-		color = [this.backgroundColor, this.extraBackgroundColor1, this.extraBackgroundColor2, color & 0x07][colorBits];
-		return { rendered: true, color: color, renderedBackgroundColor: colorBits < 2 };
-	}
+vic2.renderPixel = null;
 
-	// if bit 3 of the color is low, this char should be rendered in standard mode
-	return this.renderStandardCharacterMode(x, y);
+vic2.setPixelRenderer = function() {
+	var renderers = [
+		this.renderStandardCharacterMode,		// ECM=0 BMM=0 MCM=0
+		this.renderMultiColorCharacterMode,		// EMC=0 BMM=0 MCM=1
+		this.renderStandardBitmapMode,			// EMC=0 BMM=1 MCM=0
+		this.renderMultiColorBitmapMode,		// EMC=0 BMM=1 MCM=1
+		this.renderExtendedColorCharacterMode,	// ECM=1 BMM=0 MCM=0
+		this.renderInvalidTextMode,				// ECM=1 BMM=0 MCM=1
+		this.renderInvalidBitmapMode,			// ECM=1 BMM=1 MCM=0
+		this.renderInvalidMulticolorBitmapMode	// ECM=1 BMM=1 MCM=1
+	];
+	this.renderPixel = renderers[this.screenControlRegister.extendedBackground << 2 | this.screenControlRegister.bitmapMode << 1 | this.screenControlRegister.multiColor];
 }
 
-vic2.renderStandardBitmapMode = function(x, y) {
-	var col = x >> 3, rowPos = (y >> 3) * 40;
-	if ((this.memory.readByte(this.memorySetupRegister.pointerToBitmapMemory + (rowPos + col) * 8 + y % 8) & (0x80 >> x % 8)) > 0) {
-		var color = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col) >> 4;
-		return { rendered: true, color: color, renderedBackgroundColor: color == this.backgroundColor };
+vic2.renderStandardCharacterMode = function() {
+	if (this.gData & 1 << this.pixelBit) {
+		this.pixelColor = this.colorData;
+		this.pixelIsBG = false;
+	} else {
+		this.pixelColor = this.backgroundColor;
+		this.pixelIsBG = true;
 	}
-	return { rendered: false, renderedBackgroundColor: false };
-};
-
-vic2.renderMultiColorBitmapMode = function(x, y) {
-	var col = x >> 3, rowPos = (y >> 3) * 40, color;
-	switch ((this.memory.readByte(this.memorySetupRegister.pointerToBitmapMemory + (rowPos + col) * 8 + y % 8) >> (7 - x & 6)) & 3) {
-		case 0:
-			return { rendered: false, renderedBackgroundColor: false };
-		case 1:
-			color = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col) >> 4;
-			break;
-		case 2:
-			color = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + rowPos + col) & 15;
-			break;
-		case 3:
-			color = this.memory.readByte(0xd800 + rowPos + col);
-			break;
-	}
-	return { rendered: true, color: color, renderedBackgroundColor: color == this.backgroundColor };
 }
 
-vic2.renderSprites = function(rx, ry, renderedBackgroundColorUnder) {
+vic2.renderMultiColorCharacterMode = function() {
+	if (this.colorData & 0x08) {							// extended background color flag
+		switch (this.gData >> (this.pixelBit & 6) & 3) {	// two bits every two pixels
+			case 0: this.pixelColor = this.backgroundColor;       this.pixelIsBG = true;  break;
+			case 1: this.pixelColor = this.extraBackgroundColor1; this.pixelIsBG = true;  break;	// 01 considered background for collisions
+			case 2: this.pixelColor = this.extraBackgroundColor2; this.pixelIsBG = false; break;
+			case 3: this.pixelColor = this.colorData & 0x07;      this.pixelIsBG = false; break;
+		}
+	} else if (this.gData & 1 << this.pixelBit) {			// same as standard character mode
+		this.pixelColor = this.colorData & 0x07;
+		this.pixelIsBG = false;
+	} else {
+		this.pixelColor = this.backgroundColor;
+		this.pixelIsBG = true;
+	}
+}
 
-	var baseAddressSpriteVectors = this.memorySetupRegister.pointerToScreenMemory + 0x3f8;
+vic2.renderStandardBitmapMode = function() {
+	if (this.gData & 1 << this.pixelBit) {
+		this.pixelColor = this.cData >> 4;
+		this.pixelIsBG = false;
+	} else {
+		this.pixelColor = this.cData & 0x0f;
+		this.pixelIsBG = true;
+	}
+}
+
+vic2.renderMultiColorBitmapMode = function() {
+	switch (this.gData >> (this.pixelBit & 6) & 3) {	// two bits every two pixels
+		case 0: this.pixelColor = this.backgroundColor; this.pixelIsBG = true;  break;
+		case 1: this.pixelColor = this.cData >> 4;      this.pixelIsBG = true;  break;		// 01 considered background for collisions
+		case 2: this.pixelColor = this.cData & 0x0f;    this.pixelIsBG = false; break;
+		case 3: this.pixelColor = this.colorData;       this.pixelIsBG = false; break;
+	}
+}
+
+vic2.renderExtendedColorCharacterMode = function() {
+	if (this.gData & 1 << this.pixelBit) {
+		this.pixelColor = this.colorData;
+		this.pixelIsBG = false;
+	} else {
+		this.pixelColor = [this.backgroundColor, this.extraBackgroundColor1, this.extraBackgroundColor2, this.extraBackgroundColor3][this.cData >> 6];
+		this.pixelIsBG = true;
+	}
+}
+
+vic2.renderInvalidTextMode = function() {
+	this.pixelColor = 0;	// always black
+	this.pixelIsBG = true;	// FIXME even if invisible, this can generate spite collisions!
+}
+
+vic2.renderInvalidBitmapMode = function() {
+	this.pixelColor = 0;	// always black
+	this.pixelIsBG = true;	// FIXME even if invisible, this can generate spite collisions!
+}
+
+vic2.renderInvalidMulticolorBitmapMode = function() {
+	this.pixelColor = 0;	// always black
+	this.pixelIsBG = true;	// FIXME even if invisible, this can generate spite collisions!
+}
+
+
+vic2.renderSprites = function() {
 	var firstCollider = null;
 
 	for (var z = 7; z >= 0; z--) {
 		var sprite = this.sprites[z];
-		if (sprite.enabled) {
 
-			var width  = sprite.doubleWidth  ? 48 : 24;
-			var height = sprite.doubleHeight ? 42 : 21;
+		if (sprite.dma) {
+			var dx = this.xPos - sprite.x >> sprite.doubleWidth;
 
-			var dx = rx - (sprite.x + 8);	// pixel coordinates relative to sprite start
-			var dy = ry - (sprite.y - 13);
-
-			if (dx >= 0 && dx < width && dy >= 0 && dy < height && (!sprite.isBehindContents || renderedBackgroundColorUnder)) {
-
-				dx = sprite.doubleWidth ? dx >> 1 : dx;
-				dy = sprite.doubleHeight ? dy >> 1 : dy;
-
-				var addressSpriteDataAddress = this.memory.readByte(baseAddressSpriteVectors + z) * 64;
-				var spriteDataByte = this.memory.readByte(addressSpriteDataAddress + dy * 3 + (dx >> 3));
-				var color, colorBits = 0;
+			if (dx >= 0 && dx < 24) {
+				var colorBits, color;
 
 				if (sprite.multicolor) {
-					colorBits = (spriteDataByte >> (7 - dx & 6)) & 3;
-					color = [0x00, this.extraSpriteColor1, sprite.color, this.extraSpriteColor2][colorBits];
-				} else if (colorBits = (spriteDataByte >> (7 - dx & 7)) & 1) {
+					if (colorBits = (sprite.data[dx >> 3] >> (7 - dx & 6)) & 3)
+						color = [-1, this.extraSpriteColor1, sprite.color, this.extraSpriteColor2][colorBits];
+				} else if (colorBits = (sprite.data[dx >> 3] >> (7 - dx & 7)) & 1) {
 					color = sprite.color;
 				}
 
 				if (colorBits) {
-					this.putPixel(rx, ry, color);
+					if (!sprite.isBehindContents || this.pixelIsBG)	// is this sprite pixel visible?
+						this.pixelColor = color;
 
 					// sprite to sprite collision
 					if (firstCollider) {
 						firstCollider.collisionSprite = true;
-						sprite.collisionSprite = true;
-						if (this.interruptRegister.mask.spriteSpriteCollisionEnabled) {
-							if (!this.interruptRegister.events.spriteSpriteCollisionOccurred)
-								console.log("Sprite " + sprite.id + " collided with sprite " + firstCollider.id);
+						if (!sprite.collisionSprite) {
+							sprite.collisionSprite = true;
 							this.interruptRegister.events.spriteSpriteCollisionOccurred = true;
-							mos6510.irq = true;
+							if (this.interruptRegister.mask.spriteSpriteCollisionEnabled)
+								mos6510.irq = true;
 						}
 					} else {
 						firstCollider = sprite;
 					}
 
 					// sprite to background collision detection
-					if (!renderedBackgroundColorUnder) {
-						sprite.collisionBackground = true;
-						if (this.interruptRegister.mask.spriteBackgroundCollisionEnabled) {
-							if (!this.interruptRegister.events.spriteBackgroundCollisionOccurred)
-								console.log("Sprite " + sprite.id + " collided with background");
+					if (!this.pixelIsBG) {
+						if (!sprite.collisionBackground) {
+							sprite.collisionBackground = true;
 							this.interruptRegister.events.spriteBackgroundCollisionOccurred = true;
-							mos6510.irq = true;
+							if (this.interruptRegister.mask.spriteBackgroundCollisionEnabled)
+								mos6510.irq = true;
 						}
 					}
 				}
@@ -646,89 +677,213 @@ vic2.renderSprites = function(rx, ry, renderedBackgroundColorUnder) {
 	}
 }
 
-// process one vic clock cycle. Return true if CPU was stunned
-// line: 0..311, cycle: 1..63
+
+// process one vic clock cycle. line: 0..311, cycle: 1..63
 vic2.process = function(line, cycle) {
 
-	var badLine = (line >= 48 && line < 248 && ((line & 7) == this.screenControlRegister.yScroll));
+	var activeSprite = null;
 
-	this.screenControlRegister.currentRasterLine = line;
+	// calculate coordinates relative to border start (= sprite coordinates)
+	this.yPos = line - 14;
+	this.xPos = ((cycle - 13) * 8) + (cycle < 13 ? 504 : 0);
 
-	// at start of each raster line: turn vBorder flag on/off depending on line and screenHeight
-	if (cycle == 1) {
-		if (line == (this.screenControlRegister.screenHeight ? 51 : 55) && this.screenControlRegister.screenOn)	// top (3)
-			this.screenControlRegister.vBorder = false;
-		else if (line == (this.screenControlRegister.screenHeight ? 251 : 247))	// bottom (2)
-			this.screenControlRegister.vBorder = true;
+	this.badLine = (line >= 48 && line < 248 && ((line & 7) == this.screenControlRegister.yScroll));
+
+	this.cycleTypeVIC = this.lineTimings[this.badLine|0].charAt((cycle - 1) * 2);
+	this.cycleTypeCPU = this.lineTimings[this.badLine|0].charAt((cycle - 1) * 2 + 1);
+
+	if (cycle >= 55 || cycle < 8) {		// ckeck for X cycles (CPU stunned on read), they occur 3 cycles before a sprite's DMA turns on
+		for (var i = 0; i < 3; ++ i) {	// note: up to two sprites can influence a single cycle (example: cycle 61 sprite 2 and 3)
+			var spriteNo = parseInt(this.lineTimings[0].charAt((cycle + i) * 2));
+			if (!isNaN(spriteNo) && this.sprites[spriteNo].dma)
+				this.cycleTypeCPU = 'X';
+		}
 	}
 
-	// canvas size is 384 x 272 pixels: line = [14..285] and x = [112..495]
-	if (cycle >= 14 && cycle < 62 && line >= 14 && line < 286) {	// inside canvas? (rest is blanking)
-		for (var x = cycle * 8; x < cycle * 8 + 8; ++x) {			// 1 cycle = 8 pixels
+	if (cycle >= 58 || cycle < 11) {	// ckeck for s cycles (CPU always stunned), they occur twice during each sprite's DMA
+		var sprite_cycle = cycle >= 58 ? cycle - 58 : cycle + 5;
+		var sprite = this.sprites[sprite_cycle >> 1];
+		if (sprite && sprite.dma) {
+			activeSprite = sprite;
+			this.cycleTypeVIC = sprite_cycle &  1 ? 's' : sprite.id;	// 0L:pointer 1L:data
+			this.cycleTypeCPU = 's';									// 0H:data    1H:data
+		} else {
+			this.cycleTypeVIC = sprite_cycle &  1 ? 'i' : sprite.id;	// 0L:pointer 1L:idle
+		}
+	}
 
-			var fromBorderX = x - 112;			// coordinates relative to border start (=sprite coordinates)
-			var fromBorderY = line - 14;
+
+	// a new frame has started
+	if (!line && (cycle == 1)) {
+		this.vcBase = 0;
+		this.displayState = false;
+		this.sideBorderHack = 0;
+	}
+
+	// at the beginning of each raster line:
+	if (cycle == 1) {
+		this.screenControlRegister.currentRasterLine = line;
+	} else if (cycle == 2) {
+		this.screenControlRegister.currentRasterLine = line;
+
+		// check for raster interrupt	// does IRQ happen here or at xPos 0 aka cycle 13 ?
+		if (line == this.screenControlRegister.interruptRasterLine) {
+			this.interruptRegister.events.rasterLineOccurred = true;
+			if (this.interruptRegister.mask.rasterLineEnabled)
+				mos6510.irq = true;
+		}
+
+	} else if (cycle == 63) {
+		// turn vBorder flag on/off depending on line and screenHeight
+		if (line == (this.screenControlRegister.screenHeight ? 51 : 55) && this.screenControlRegister.screenOn)	// top (3)
+			this.vBorder = false;
+		else if (line == (this.screenControlRegister.screenHeight ? 251 : 247))	// bottom (2)
+			this.vBorder = true;
+	}
 
 
-			// at left/right border boundaries: calculate vBorder and mainBorder flags
-			if (fromBorderX == (this.screenControlRegister.screenWidth ? 24 + 8 : 31 + 8)) {	// left
-					if (line == (this.screenControlRegister.screenHeight ? 51 : 55) && this.screenControlRegister.screenOn)	// top
-						this.screenControlRegister.vBorder = false;
+	// vertical blanking starts at line 286 and ends at line 13. During that time, nothing is ever rendered.
+	if (line >= 14 && line < 286) {	// inside canvas?
+
+		if (cycle == 14) {
+			this.vc = this.vcBase;
+			this.vmli = 0;
+			if (this.badLine) {
+				this.displayState = true;
+				this.rc = 0;
+			}
+		} else if (cycle == 15) {
+			for (var z = 7; z >= 0; z--) {
+				var sprite = this.sprites[z];
+				if (sprite.yex)
+					sprite.mcbase = sprite.mcbase + 2;
+			}
+		} else if (cycle == 54) {	// FIXME this is supposed to happen in cycle 16. But putting it to cycle 54 fixes SCA's northstar intro and Attack of the Mutant Camels. So be it.
+			for (var z = 7; z >= 0; z--) {
+				var sprite = this.sprites[z];
+				if (!sprite.doubleHeight)
+					sprite.yex = true;
+
+				if (sprite.yex)
+					sprite.mcbase++;
+
+				if (sprite.mcbase == 63)
+					sprite.dma = false;
+			}
+		} else if (cycle == 55 || cycle == 56) {
+			for (var z = 7; z >= 0; z--) {
+				var sprite = this.sprites[z];
+				if (cycle == 55 && sprite.doubleHeight)
+					sprite.yex = !sprite.yex;
+				if (sprite.enabled && sprite.y == (line & 0xff) && !sprite.dma) {
+						sprite.dma = true;
+						sprite.mcbase = 0;
+						if (sprite.doubleHeight)
+							sprite.yex = false;
+				}
+			}
+		} else if (cycle == 58) {
+			if (this.rc == 7) {
+				this.vcBase = this.vc;
+				if (!this.badLine)
+					this.displayState = false;
+			}
+			this.rc = (this.rc + 1) & 7;
+
+			for (var z = 7; z >= 0; z--) {
+				var sprite = this.sprites[z];
+				sprite.mc = sprite.mcbase;
+			}
+		}
+
+
+		// Sprite DMA: Data pointers are always read, data bytes are read only if sprite is enabled
+		if (activeSprite) {
+			if (this.cycleTypeVIC == activeSprite.id) {	// 1st vic + cpu cycle
+				sprite.pointer = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + 0x3f8 + sprite.id) << 6;
+				if (sprite.dma) {
+					sprite.data[0] = this.memory.readByte(sprite.pointer + sprite.mc++);
+				}
+			} else if (sprite.dma) {						// 2nd vic + cpu cycle
+				sprite.data[1] = this.memory.readByte(sprite.pointer + sprite.mc++);
+				sprite.data[2] = this.memory.readByte(sprite.pointer + sprite.mc++);
+			}
+		}
+
+
+		// horizontal blanking occurs between cycles 60 and 10 (first 87 pixels of a line)
+		if (cycle >= 12 && cycle < 60) {
+
+			// loop through all 8 pixels of this cycle
+			for (var x = 0; x < 8; ++x) {
+
+				// at left/right border boundaries: calculate vBorder and mainBorder flags
+				if (this.xPos == (this.screenControlRegister.screenWidth ? 24 : 31)) {	// left
+					if (line == (this.screenControlRegister.screenHeight ? 51 : 55) && this.screenControlRegister.screenOn)		// top
+						this.vBorder = false;
 					else if (line == (this.screenControlRegister.screenHeight ? 251 : 247))		// bottom
-						this.screenControlRegister.vBorder = true;
-					if (!this.screenControlRegister.vBorder)			// reset mainBorder if vBorder is not set
-						this.screenControlRegister.mainBorder = false;
-			} else if (fromBorderX == (this.screenControlRegister.screenWidth ? 344 + 8 : 335 + 8))	// right
-					this.screenControlRegister.mainBorder = true;
+						this.vBorder = true;
+					if (!this.vBorder)				// reset mainBorder if vBorder is not set
+						this.mainBorder = false;
+				} else if (this.xPos == (this.screenControlRegister.screenWidth ? 344 : 335)) {	// right
+					if (this.sideBorderHack < 2)
+						this.mainBorder = true;
+					this.sideBorderHack = 0;
+				}
 
-			if (!this.screenControlRegister.mainBorder) {	// is the border off?
+				if (this.cycleTypeVIC == 'g' && x == this.screenControlRegister.xScroll) {	// cycles 15-55: display dma at current xScroll
 
-				var fromScreenX = fromBorderX - 32 - this.screenControlRegister.xScroll;			// visible screen area
-				var fromScreenY = line - 48 - this.screenControlRegister.yScroll;
-				var rendered = { rendered:true, color:0, renderedBackgroundColor:false };			// default: black (TODO: should be contents of $3fff / $39ff)
-
-				if (fromScreenX >= 0 && fromScreenX < 320 && fromScreenY >= 0 && fromScreenY < 200) {
-					if (this.screenControlRegister.renderMode) {
-						if (this.screenControlRegister.multiColor) {
-							rendered = this.renderMultiColorBitmapMode(fromScreenX, fromScreenY);
-						} else {
-							rendered = this.renderStandardBitmapMode(fromScreenX, fromScreenY);
+					if (this.displayState) {
+						// c (video ram) and color ram dma only occurs in displayState on bad lines.
+						if (this.badLine) {
+							this.videoMatrixLine[this.vmli] = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + this.vc);
+							this.colorMatrixLine[this.vmli] = this.memory.readByte(0xd800 + this.vc);
 						}
-					} else {
-						if (this.screenControlRegister.multiColor) {
-							rendered = this.renderMultiColorCharacterMode(fromScreenX, fromScreenY);
-						} else {
-							rendered = this.renderStandardCharacterMode(fromScreenX, fromScreenY);
-						}
+
+						this.cData = this.videoMatrixLine[this.vmli];
+						this.colorData = this.colorMatrixLine[this.vmli];
+
+						// g (bitmap or char) dma occurs always.
+						if (this.screenControlRegister.bitmapMode)
+							this.gData = this.memory.readByte(this.memorySetupRegister.pointerToBitmapMemory + (this.vc << 3) + this.rc);
+						else if (this.screenControlRegister.extendedBackground)
+							this.gData = this.memory.readByte(this.memorySetupRegister.pointerToCharMemory + ((this.cData & 0x3f) << 3) + this.rc);
+						else
+							this.gData = this.memory.readByte(this.memorySetupRegister.pointerToCharMemory + (this.cData << 3) + this.rc);
+
+						this.vc++;
+						this.vmli++;
+
+					} else {	// idleState
+
+						this.cData = 0;
+						this.colorData = 0;
+
+						// In idleState, gData is always read from $3fff (or $39ff in ECM)
+						this.gData = this.memory.readByte(this.pointerToIdleMemory);
 					}
 				}
 
-				if (rendered.rendered) {
-					this.putPixel(fromBorderX, fromBorderY, rendered.color);
+				if (!this.mainBorder) {
+					this.pixelBit = (this.screenControlRegister.xScroll - x - 1) & 7 ;
+					this.renderPixel();
+					this.renderSprites();
 				} else {
-					this.putPixel(fromBorderX, fromBorderY, this.backgroundColor);
-					rendered.renderedBackgroundColor = true;
+					this.pixelColor = this.borderColor;
 				}
 
-				// render sprites
-				this.renderSprites(fromBorderX, fromBorderY, rendered.renderedBackgroundColor);
+				var color = this.colorPalette[this.pixelColor];
+				var position = (this.yPos * 384 + this.xPos - (cycle < 13 ? 504 : 0) + 8) * 4;		// xPos + 8 because 1st pixel of visible area is at coordinate -8 (=1f0, cycle 12)
+				this.imageData[position + 0] = (color & 0xff0000) >> 16;	// red
+				this.imageData[position + 1] = (color & 0x00ff00) >> 8;		// green
+				this.imageData[position + 2] = (color & 0x0000ff);			// blue
+				this.imageData[position + 3] = 0xff;						// alpha
 
-			} else {	// render border
-				this.putPixel(fromBorderX, fromBorderY, this.borderColor /* + badLine + 2 * !this.screenControlRegister.screenWidth */);	// remove comment to see bad lines and screen width register
-			}
+				this.xPos++;
+
+			}	// end of pixel loop
+
+			this.xPos -= 8;	// when we return xPos is always the 1st pixel of char
 		}
 	}
-
-	if (cycle == 1) {
-		if (this.interruptRegister.mask.rasterLineEnabled && line == this.screenControlRegister.interruptRasterLine) {
-			this.interruptRegister.events.rasterLineOccurred = true;
-			mos6510.irq = true;
-		}
-	}
-
-	if (line == 311 && cycle == 63) {	// end of frame
-		this.screenCanvasContext.putImageData(this.screenCanvasImageData, 0, 0);
-	}
-
-	return badLine;
-};
+}
