@@ -89,13 +89,9 @@ main.start = function (canvas) {
 	this.canvasContext = canvas.getContext('2d');
 	this.imageData = this.canvasContext.createImageData(384, 272);
 
-	memoryManager.kernel = new Rom(0xe000, romDump.kernel);
-	memoryManager.basic = new Rom(0xa000, romDump.basic);
-	memoryManager.character = new Rom(0x0000, romDump.character);
-
-	cpuMemoryManager.init();
-	mos6510.init(cpuMemoryManager);
-	vic2.init(vicMemoryManager, this.imageData.data);
+	memoryManager.init();
+	mos6510.init(memoryManager);
+	vic2.init(this.imageData.data);
 	sid.init();
 
 	var cpuCycles = 0;

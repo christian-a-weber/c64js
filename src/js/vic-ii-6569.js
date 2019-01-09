@@ -66,8 +66,6 @@ vic2.extraBackgroundColor3 = 0x00;
 vic2.extraSpriteColor1 = 0x00;
 vic2.extraSpriteColor2 = 0x00;
 
-vic2.memory = null;
-
 // internal vic state
 vic2.mainBorder = false;		// main border flag: if set, border color is shown
 vic2.vBorder = false;			// vertical border flag: if set, mainBorder can't be reset
@@ -92,13 +90,12 @@ vic2.pixelBit = 0;				// bit position of current pixel [7..0]
 vic2.pixelColor = 0;			// color of current pixel [0..15]
 vic2.pixelIsBG = false;			// true if the current pixel is a background pixel (0 in hires or 00/01 in multicolor mode)
 
-vic2.init = function(memoryManager, imageData) {
-	this.memory = memoryManager;
+vic2.init = function(imageData) {
 	this.imageData = imageData;
 }
 
 vic2.onWriteByte = function(address, data) {
-	switch (address & 0x3f) {		// vic2 memory map is repeated every 64 bytes
+	switch (address & 0x3f) {		// vic2 register map is repeated every 64 bytes
 
 		case 0x00:		// $d000: sprite0 x
 			this.sprites[0].x = (this.sprites[0].x & 0x100) | data;
@@ -347,7 +344,7 @@ vic2.onWriteByte = function(address, data) {
 }
 
 vic2.onReadByte = function(address) {
-	switch (address & 0x3f) {		// vic2 memory map is repeated every 64 bytes
+	switch (address & 0x3f) {		// vic2 register map is repeated every 64 bytes
 
 		case 0x00:		// $d000: sprite0 x
 			return this.sprites[0].x & 0xff;
@@ -776,10 +773,10 @@ vic2.process = function(line, cycle) {
 				if (cycle == 55 && sprite.doubleHeight)
 					sprite.yex = !sprite.yex;
 				if (sprite.enabled && sprite.y == (line & 0xff) && !sprite.dma) {
-						sprite.dma = true;
-						sprite.mcbase = 0;
-						if (sprite.doubleHeight)
-							sprite.yex = false;
+					sprite.dma = true;
+					sprite.mcbase = 0;
+					if (sprite.doubleHeight)
+						sprite.yex = false;
 				}
 			}
 		} else if (cycle == 58) {
@@ -800,13 +797,13 @@ vic2.process = function(line, cycle) {
 		// Sprite DMA: Data pointers are always read, data bytes are read only if sprite is enabled
 		if (activeSprite) {
 			if (this.cycleTypeVIC == activeSprite.id) {	// 1st vic + cpu cycle
-				sprite.pointer = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + 0x3f8 + sprite.id) << 6;
+				sprite.pointer = memoryManager.readByteVIC(this.memorySetupRegister.pointerToScreenMemory + 0x3f8 + sprite.id) << 6;
 				if (sprite.dma) {
-					sprite.data[0] = this.memory.readByte(sprite.pointer + sprite.mc++);
+					sprite.data[0] = memoryManager.readByteVIC(sprite.pointer + sprite.mc++);
 				}
 			} else if (sprite.dma) {						// 2nd vic + cpu cycle
-				sprite.data[1] = this.memory.readByte(sprite.pointer + sprite.mc++);
-				sprite.data[2] = this.memory.readByte(sprite.pointer + sprite.mc++);
+				sprite.data[1] = memoryManager.readByteVIC(sprite.pointer + sprite.mc++);
+				sprite.data[2] = memoryManager.readByteVIC(sprite.pointer + sprite.mc++);
 			}
 		}
 
@@ -836,8 +833,8 @@ vic2.process = function(line, cycle) {
 					if (this.displayState) {
 						// c (video ram) and color ram dma only occurs in displayState on bad lines.
 						if (this.badLine) {
-							this.videoMatrixLine[this.vmli] = this.memory.readByte(this.memorySetupRegister.pointerToScreenMemory + this.vc);
-							this.colorMatrixLine[this.vmli] = this.memory.readByte(0xd800 + this.vc);
+							this.videoMatrixLine[this.vmli] = memoryManager.readByteVIC(this.memorySetupRegister.pointerToScreenMemory + this.vc);
+							this.colorMatrixLine[this.vmli] = memoryManager.readColorRAMVIC(this.vc);
 						}
 
 						this.cData = this.videoMatrixLine[this.vmli];
@@ -845,11 +842,11 @@ vic2.process = function(line, cycle) {
 
 						// g (bitmap or char) dma occurs always.
 						if (this.screenControlRegister.bitmapMode)
-							this.gData = this.memory.readByte(this.memorySetupRegister.pointerToBitmapMemory + (this.vc << 3) + this.rc);
+							this.gData = memoryManager.readByteVIC(this.memorySetupRegister.pointerToBitmapMemory + (this.vc << 3) + this.rc);
 						else if (this.screenControlRegister.extendedBackground)
-							this.gData = this.memory.readByte(this.memorySetupRegister.pointerToCharMemory + ((this.cData & 0x3f) << 3) + this.rc);
+							this.gData = memoryManager.readByteVIC(this.memorySetupRegister.pointerToCharMemory + ((this.cData & 0x3f) << 3) + this.rc);
 						else
-							this.gData = this.memory.readByte(this.memorySetupRegister.pointerToCharMemory + (this.cData << 3) + this.rc);
+							this.gData = memoryManager.readByteVIC(this.memorySetupRegister.pointerToCharMemory + (this.cData << 3) + this.rc);
 
 						this.vc++;
 						this.vmli++;
@@ -860,7 +857,7 @@ vic2.process = function(line, cycle) {
 						this.colorData = 0;
 
 						// In idleState, gData is always read from $3fff (or $39ff in ECM)
-						this.gData = this.memory.readByte(this.pointerToIdleMemory);
+						this.gData = memoryManager.readByteVIC(this.pointerToIdleMemory);
 					}
 				}
 

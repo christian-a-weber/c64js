@@ -9,11 +9,11 @@ fileLoad.saveToMemory = function() {
 		var dataArray = this.data.subarray(2);
 
 		for (var index = 0; index < dataArray.byteLength; index++) {
-			memoryManager.ram.onWriteByte(baseAddress + index, dataArray[index]);
+			memoryManager.writeByte(baseAddress + index, dataArray[index]);
 		}
 
-		memoryManager.ram.onWriteByte(0xae, (baseAddress + dataArray.length) & 0xff);
-		memoryManager.ram.onWriteByte(0xaf, ((baseAddress + dataArray.length) >> 8) & 0xff);
+		memoryManager.writeByte(0xae, (baseAddress + dataArray.length) & 0xff);
+		memoryManager.writeByte(0xaf, ((baseAddress + dataArray.length) >> 8) & 0xff);
 
 		var result = {filename:this.filename, base:baseAddress, length:dataArray.length}
 		this.data = null;
@@ -24,8 +24,8 @@ fileLoad.saveToMemory = function() {
 }
 
 fileLoad.writeAutoRun = function() {
-	cpuMemoryManager.writeByte(198, 1);	// keyboard buffer len
-	cpuMemoryManager.writeByte(631, 131);	// shift-run/stop (load + run)
+	memoryManager.writeByte(198, 1);	// keyboard buffer len
+	memoryManager.writeByte(631, 131);	// shift-run/stop (load + run)
 }
 
 fileLoad.selectFile = function() {
@@ -41,27 +41,25 @@ fileLoad.selectFile = function() {
 }
 
 fileLoad.load = function(file) {
-	//if(file.name.toLowerCase().endsWith('.prg')) {
-	var reader = new FileReader();
-	reader.onload = function(e) {
-		fileLoad.data = new Uint8Array(reader.result);
+	if(file.name.toLowerCase().endsWith('.prg') || file.name.toLowerCase().endsWith('.p00')) {
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			fileLoad.data = new Uint8Array(reader.result);
 
-		// Is this a .p00 file? If so, skip its header
-		if (fileLoad.data.byteLength >= 26 && fileLoad.data[0] == 0x43 && fileLoad.data[1] == 0x36 && fileLoad.data[2] == 0x34)
-			fileLoad.data = fileLoad.data.subarray(26);
+			// Is this a .p00 file? If so, skip its header
+			if (fileLoad.data.byteLength >= 26 && fileLoad.data[0] == 0x43 && fileLoad.data[1] == 0x36 && fileLoad.data[2] == 0x34)
+				fileLoad.data = fileLoad.data.subarray(26);
 
-		fileLoad.filename = file.name;
-		fileLoad.writeAutoRun(); // Will trigger the LOAD hook
-	};
-	reader.readAsArrayBuffer(file);
-	/*
+			fileLoad.filename = file.name;
+			fileLoad.writeAutoRun(); // Will trigger the LOAD hook
+		};
+		reader.readAsArrayBuffer(file);
 	} else if(file.name.toLowerCase().endsWith('.d64')) {
 		fileLoad.parseD64.loadImage(file);
 	}
 	else {
-		alert('The uploaded files format was not supported. Supported files are .prg');
+		alert('The uploaded files format was not supported. Supported files are .prg .p00 .d64');
 	}
-	*/
 }
 
 fileLoad.parseD64 = {};

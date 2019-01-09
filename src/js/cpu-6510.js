@@ -200,7 +200,7 @@ mos6510.instructions = {
 		if (mos6510.register.status.decimal) {
 			mos6510.register.status.negative = mos6510.register.status.carry;
 			mos6510.register.status.overflow = (mos6510.register.a & 0x40) != (andResult & 0x40);
-			
+
 			// BCD fix up
 			var andAl = andResult & 0x0f;
 			var andAh = andResult >> 4;
@@ -1687,7 +1687,7 @@ mos6510.instructionMap = {
 		return 7;
 	}
 };
-	
+
 mos6510.checkBreakPoints = function () {
 
 	// LOAD hook

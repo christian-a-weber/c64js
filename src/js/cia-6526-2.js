@@ -11,18 +11,18 @@ memoryManager.cia2.setVicBank = function(data) {
 	var config = (data & memoryManager.cia2.vicBankMask) & 0x03;
 	var address = 0xc000 - (config * 0x4000);
 	
-	vicMemoryManager.vicBankAddress = address;
+	memoryManager.vicBankAddress = address;
 	
 	if ((config & 0x01) == 0x01) {
-		vicMemoryManager.isRomCharsAvailable = true;
+		memoryManager.vicCharROMEnabled = true;
 	
 		if ((config & 0x02) == 0x02)
-			vicMemoryManager.romCharsAddress = 0x1000;
+			memoryManager.vicCharROMAddress = 0x1000;
 		else
-			vicMemoryManager.romCharsAddress = 0x9000;
+			memoryManager.vicCharROMAddress = 0x9000;
 			
 	} else {
-		vicMemoryManager.isRomCharsAvailable = false;
+		memoryManager.vicCharROMEnabled = false;
 	}
 	
 };

@@ -113,7 +113,7 @@ jsSID.SIDPlayer.prototype.getNextFrame = function() {
 		// this.cpu.cpuJSR(this.sidfile.play_addr, 0);
 		// check if CIA timing is used, and adjust
 
-        //var nRefreshCIA = Math.floor(20000 * (cpuMemoryManager.readByte(0xdc04) | (cpuMemoryManager.readByte(0xdc05) << 8)) / 0x4c00);
+        //var nRefreshCIA = Math.floor(20000 * (memoryManager.readByte(0xdc04) | (memoryManager.readByte(0xdc05) << 8)) / 0x4c00);
         var nRefreshCIA = Math.floor(20000 * (mos6510.memory.readByte(0xdc04) | (mos6510.memory.readByte(0xdc05) << 8)) / 0x4c00);
         //if ((nRefreshCIA === 0) || (this.sidspeed === 0)) nRefreshCIA = 20000;
 		this.samplesPerFrame = Math.floor(this.synth.mix_freq * nRefreshCIA / 1000000);
