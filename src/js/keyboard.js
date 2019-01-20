@@ -72,12 +72,12 @@ document.onkeyup = function(e) {
 	var keyboardMapValue = keyboard.keyMapMac.indexOf(keyCode);
 	
 	if (keyboardMapValue > -1) {
-		var row = Math.floor(keyboardMapValue / 8);
-		var col = (keyboardMapValue % 8);
+		var row = keyboardMapValue >> 3;
+		var col = keyboardMapValue & 7;
 		keyboard.row[1 << row] = ((keyboard.row[1 << row] & (1 << col)) > 0) ? keyboard.row[1 << row] - (1 << col) : keyboard.row[1 << row];
 	}
-	
-};
+}
+
 
 document.onkeydown = function(e) {
 //	console.log("down: ", e, JSON.stringify(e));
@@ -156,4 +156,4 @@ document.onkeydown = function(e) {
 //		console.log("r: ", row, " col: ", col);
 		keyboard.row[1 << row] = keyboard.row[1 << row] | 1 << col;
 	}
-};
+}
