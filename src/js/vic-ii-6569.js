@@ -282,31 +282,31 @@ vic2.onWriteByte = function(address, data) {
 			break;
 
 		case 0x20:		// $d020: border color
-			this.borderColor = data;
+			this.borderColor = data & 0x0f;
 			break;
 
 		case 0x21:		// $d021: background color #0
-			this.backgroundColor = data;
+			this.backgroundColor = data & 0x0f;
 			break;
 
 		case 0x22:		// $d022: background color #1
-			this.extraBackgroundColor1 = data;
+			this.extraBackgroundColor1 = data & 0x0f;
 			break;
 
 		case 0x23:		// $d023: background color #2
-			this.extraBackgroundColor2 = data;
+			this.extraBackgroundColor2 = data & 0x0f;
 			break;
 
 		case 0x24:		// $d024: background color #3
-			this.extraBackgroundColor3 = data;
+			this.extraBackgroundColor3 = data & 0x0f;
 			break;
 
 		case 0x25:		// $d025: sprite multicolor #1
-			this.extraSpriteColor1 = data;
+			this.extraSpriteColor1 = data & 0x0f;
 			break;
 
 		case 0x26:		// $d026: sprite multicolor #2
-			this.extraSpriteColor2 = data;
+			this.extraSpriteColor2 = data & 0x0f;
 			break;
 
 		case 0x27:		// $d027: sprite0 color
@@ -488,49 +488,49 @@ vic2.onReadByte = function(address) {
 			return result;
 
 		case 0x20:		// $d020: border color
-			return this.borderColor;
+			return this.borderColor | 0xf0;
 
 		case 0x21:		// $d021: background color #0
-			return this.backgroundColor;
+			return this.backgroundColor | 0xf0;
 
 		case 0x22:		// $d022: background color #1
-			return this.extraBackgroundColor1;
+			return this.extraBackgroundColor1 | 0xf0;
 
 		case 0x23:		// $d023: background color #2
-			return this.extraBackgroundColor2;
+			return this.extraBackgroundColor2 | 0xf0;
 
 		case 0x24:		// $d024: background color #3
-			return this.extraBackgroundColor3;
+			return this.extraBackgroundColor3 | 0xf0;
 
 		case 0x25:		// $d025: sprite multicolor #1
-			return this.extraSpriteColor1;
+			return this.extraSpriteColor1 | 0xf0;
 
 		case 0x26:		// $d026: sprite multicolor #2
-			return this.extraSpriteColor2;
+			return this.extraSpriteColor2 | 0xf0;
 
 		case 0x27:		// $d027: sprite0 color
-			return this.sprites[0].color;
+			return this.sprites[0].color | 0xf0;
 
 		case 0x28:		// $d028: sprite1 color
-			return this.sprites[1].color;
+			return this.sprites[1].color | 0xf0;
 
 		case 0x29:		// $d029: sprite2 color
-			return this.sprites[2].color;
+			return this.sprites[2].color | 0xf0;
 
 		case 0x2a:		// $d02a: sprite3 color
-			return this.sprites[3].color;
+			return this.sprites[3].color | 0xf0;
 
 		case 0x2b:		// $d02b: sprite4 color
-			return this.sprites[4].color;
+			return this.sprites[4].color | 0xf0;
 
 		case 0x2c:		// $d02c: sprite5 color
-			return this.sprites[5].color;
+			return this.sprites[5].color | 0xf0;
 
 		case 0x2d:		// $d02d: sprite6 color
-			return this.sprites[6].color;
+			return this.sprites[6].color | 0xf0;
 
 		case 0x2e:		// $d02e: sprite7 color
-			return this.sprites[7].color;
+			return this.sprites[7].color | 0xf0;
 	}
 }
 
