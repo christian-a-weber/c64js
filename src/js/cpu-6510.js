@@ -337,6 +337,7 @@ mos6510.instructions = {
 		mos6510.pushToStack(mos6510.register.pc & 0x00ff);
 		mos6510.pushToStack(mos6510.register.status.getStatusByte() & 0xef);  // clearing the break flag
 		mos6510.register.pc = mos6510.memory.readByte(0xfffe) | (mos6510.memory.readByte(0xffff) << 8);
+		mos6510.register.status.interrupt = true;
 	},
 	jmp: function (addr, isIndirect) {
 		if (isIndirect)
@@ -380,6 +381,7 @@ mos6510.instructions = {
 		mos6510.pushToStack(mos6510.register.pc & 0x00ff);
 		mos6510.pushToStack(mos6510.register.status.getStatusByte() & 0xef);  // clearing the break flag
 		mos6510.register.pc = mos6510.memory.readByte(0xfffa) | (mos6510.memory.readByte(0xfffb) << 8);
+		mos6510.register.status.interrupt = true;	// FIXME I found no documentation about setting I bit on NMI
 	},
 	ora: function (value) {
 		mos6510.register.a |= value;
@@ -1726,6 +1728,7 @@ mos6510.process = function () {
 	if (this.instructionMap[instructionToExecute])
 		return this.instructionMap[instructionToExecute]();
 	else {
+		this.register.pc--;
 		console.log('ERROR: Could not execute opcode $' + instructionToExecute.toString(16) + ' @ $' + this.register.pc.toString(16));
 		return 0;
 	}
