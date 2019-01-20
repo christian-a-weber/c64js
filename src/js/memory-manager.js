@@ -8,7 +8,6 @@ var memoryManager = memoryManager || {
 	memoryMode:			0x1f,		// Bit 2: *CHAREN, Bit 1: *HIRAM, Bit 0: *LORAM
 
 	vicBankAddress:		0,			// 0x0000, 0x4000, 0x8000 or 0xC000
-	vicCharROMAddress:	0x1000,
 	vicCharROMEnabled:	true,
 };
 
@@ -22,7 +21,7 @@ memoryManager.init = function() {
 	this.charROM = romDump.character;
 
 	this.writeByte(0x0000, 0x2f);		// Data Direction Register
-	this.writeByte(0x0001, 0x1f);		// Processor port
+	this.writeByte(0x0001, 0x1f);		// Processor i/o port
 }
 
 
@@ -43,7 +42,7 @@ memoryManager.readByte = function(address) {
 	if (address >= 0xd000 && address < 0xe000 && this.memoryMode & 0x03) {
 
 		if (!(this.memoryMode & 0x04)) {					// *CHAREN ?
-			return this.charROM[address & 0x1ffff];
+			return this.charROM[address & 0x0fff];
 		}
 
 		if (address >= 0xd000 && address <= 0xd3ff) {		// VIC-II
@@ -67,6 +66,9 @@ memoryManager.readByte = function(address) {
 		}
 	}
 
+	if (this.mainRAM[address] === undefined)
+		console.log("reading undefined from " + address.toString(16));
+
 	return this.mainRAM[address];
 }
 
@@ -82,15 +84,11 @@ memoryManager.writeByte = function(address, data) {
 
 	// IO chips if CHAREN && (HIRAM | LORAM)
 	if (address >= 0xd000 && address < 0xe000 && (this.memoryMode & 0x07) >= 0x05) {
-		if (address >= 0xd000 && address <= 0xd3ff) {		// VIC-II
+		if (address >= 0xd000 && address <= 0xd3ff) {			// VIC-II
 			vic2.onWriteByte(address, data);
-		}
-
-		if (address >= 0xd400 && address <= 0xd7ff) {		// SID
+		} else if (address >= 0xd400 && address <= 0xd7ff) {	// SID
 			sid.onWriteByte(address, data);
-		}
-
-		if (address >= 0xd800 && address <= 0xdbff) {		// Color RAM
+		} else if (address >= 0xd800 && address <= 0xdbff) {	// Color RAM
 			this.colorRAM[address & 0x03ff] = data & 0x0f;
 		}
 
@@ -109,7 +107,10 @@ memoryManager.writeByte = function(address, data) {
 
 // Read a byte using VIC
 memoryManager.readByteVIC = function(address) {
-	if (this.vicCharROMEnabled && address >= this.vicCharROMAddress && address <= this.vicCharROMAddress + 0x0fff) {
+	if (address & 0xc000)
+		console.log("VIC read: address > 4000: " + address.toString(16) + " at " + mos6510.register.pc.toString(16));
+
+	if (this.vicCharROMEnabled && address >= 0x1000 && address <= 0x1fff) {
 		return this.charROM[address & 0x0fff];
 	}
 
